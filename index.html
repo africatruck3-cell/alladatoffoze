@@ -1,0 +1,1635 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Zone Sanitaire ALLADA-TOFFO-ZE</title>
+<meta name="description" content="Application de gestion du parc automobile de la Zone Sanitaire Allada-Toffo-Zè">
+<meta name="author" content="Zone Sanitaire ATZ">
+
+<!-- Favicon -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
+
+<!-- Google Fonts -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<!-- Font Awesome Icons -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+<!-- Libraries -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
+
+<style>
+:root {
+    --primary: #0d3b66;
+    --primary-light: #1a5490;
+    --secondary: #2a9d8f;
+    --secondary-light: #3db8a9;
+    --accent: #e76f51;
+    --warning: #f4a261;
+    --danger: #e63946;
+    --success: #2a9d8f;
+    --bg-light: #f8fafc;
+    --bg-card: #ffffff;
+    --text-primary: #1e293b;
+    --text-secondary: #64748b;
+    --border: #e2e8f0;
+    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+    --radius: 12px;
+    --transition: all 0.3s ease;
+}
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
+    min-height: 100vh;
+    color: var(--text-primary);
+    line-height: 1.6;
+}
+
+/* Header */
+header {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    box-shadow: var(--shadow-lg);
+    position: sticky;
+    top: 0;
+    z-index: 100;
+}
+
+.header-brand {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+
+.header-brand i {
+    font-size: 1.8rem;
+}
+
+.header-brand h1 {
+    font-size: 1.4rem;
+    font-weight: 600;
+}
+
+.header-brand span {
+    font-size: 0.85rem;
+    opacity: 0.9;
+    font-weight: 400;
+}
+
+.header-actions {
+    display: flex;
+    gap: 10px;
+}
+
+/* Container */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 2rem;
+}
+
+/* Cards */
+.card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    box-shadow: var(--shadow);
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.card:hover {
+    box-shadow: var(--shadow-lg);
+}
+
+.card-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--bg-light);
+}
+
+.card-header i {
+    font-size: 1.5rem;
+    color: var(--primary);
+    background: rgba(13, 59, 102, 0.1);
+    padding: 12px;
+    border-radius: 10px;
+}
+
+.card-header h2 {
+    font-size: 1.3rem;
+    font-weight: 600;
+    color: var(--primary);
+}
+
+/* Forms */
+.form-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1.25rem;
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.form-group.full-width {
+    grid-column: 1 / -1;
+}
+
+.form-group label {
+    font-size: 0.875rem;
+    font-weight: 500;
+    color: var(--text-secondary);
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.form-group label i {
+    font-size: 0.8rem;
+    color: var(--primary);
+}
+
+.form-control {
+    padding: 12px 14px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-family: inherit;
+    transition: var(--transition);
+    background: var(--bg-light);
+}
+
+.form-control:focus {
+    outline: none;
+    border-color: var(--primary);
+    background: white;
+    box-shadow: 0 0 0 3px rgba(13, 59, 102, 0.1);
+}
+
+.form-control::placeholder {
+    color: var(--text-secondary);
+    opacity: 0.7;
+}
+
+select.form-control {
+    cursor: pointer;
+}
+
+textarea.form-control {
+    resize: vertical;
+    min-height: 80px;
+}
+
+/* Buttons */
+.btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: var(--transition);
+    text-decoration: none;
+}
+
+.btn:hover {
+    transform: translateY(-2px);
+}
+
+.btn:active {
+    transform: translateY(0);
+}
+
+.btn-primary {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+    color: white;
+}
+
+.btn-primary:hover {
+    box-shadow: 0 4px 12px rgba(13, 59, 102, 0.4);
+}
+
+.btn-success {
+    background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
+    color: white;
+}
+
+.btn-success:hover {
+    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
+}
+
+.btn-danger {
+    background: linear-gradient(135deg, var(--danger) 0%, #ff6b6b 100%);
+    color: white;
+}
+
+.btn-danger:hover {
+    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.4);
+}
+
+.btn-warning {
+    background: linear-gradient(135deg, var(--warning) 0%, #f8b26a 100%);
+    color: white;
+}
+
+.btn-secondary {
+    background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%);
+    color: white;
+}
+
+.btn-outline {
+    background: transparent;
+    border: 2px solid var(--primary);
+    color: var(--primary);
+}
+
+.btn-outline:hover {
+    background: var(--primary);
+    color: white;
+}
+
+.btn-sm {
+    padding: 8px 12px;
+    font-size: 0.85rem;
+}
+
+.btn-icon {
+    padding: 10px;
+    border-radius: 8px;
+}
+
+/* Stats Cards */
+.stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1.25rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 1.5rem;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border);
+    transition: var(--transition);
+}
+
+.stat-card:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+.stat-icon {
+    width: 60px;
+    height: 60px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+
+.stat-icon.blue {
+    background: rgba(13, 59, 102, 0.1);
+    color: var(--primary);
+}
+
+.stat-icon.green {
+    background: rgba(42, 157, 143, 0.1);
+    color: var(--secondary);
+}
+
+.stat-icon.orange {
+    background: rgba(244, 162, 97, 0.1);
+    color: var(--warning);
+}
+
+.stat-icon.red {
+    background: rgba(230, 57, 70, 0.1);
+    color: var(--danger);
+}
+
+.stat-content h3 {
+    font-size: 2rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    line-height: 1;
+}
+
+.stat-content p {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+    margin-top: 4px;
+}
+
+/* Table */
+.table-wrapper {
+    overflow-x: auto;
+    border-radius: var(--radius);
+    border: 1px solid var(--border);
+}
+
+table {
+    width: 100%;
+    border-collapse: collapse;
+    min-width: 900px;
+}
+
+thead {
+    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
+}
+
+th {
+    color: white;
+    padding: 14px 12px;
+    text-align: left;
+    font-weight: 600;
+    font-size: 0.9rem;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+td {
+    padding: 12px;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.95rem;
+}
+
+tbody tr {
+    transition: var(--transition);
+}
+
+tbody tr:hover {
+    background: var(--bg-light);
+}
+
+.centre-row {
+    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
+    font-weight: 600;
+}
+
+.centre-row td {
+    padding: 10px 12px;
+    color: var(--primary);
+    border-bottom: 2px solid var(--primary);
+}
+
+/* Action Buttons in Table */
+.action-btns {
+    display: flex;
+    gap: 6px;
+}
+
+.action-btns .btn {
+    padding: 6px 10px;
+    font-size: 0.8rem;
+}
+
+/* Missing Centers Alert */
+.alert {
+    padding: 1.25rem;
+    border-radius: var(--radius);
+    margin-top: 1.5rem;
+}
+
+.alert-warning {
+    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+    border: 1px solid var(--warning);
+}
+
+.alert-header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 1rem;
+}
+
+.alert-header i {
+    font-size: 1.3rem;
+    color: var(--warning);
+}
+
+.alert-header h4 {
+    font-size: 1rem;
+    color: var(--text-primary);
+}
+
+.missing-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 8px;
+    list-style: none;
+}
+
+.missing-list li {
+    background: white;
+    padding: 8px 12px;
+    border-radius: 6px;
+    font-size: 0.9rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+
+.missing-list li::before {
+    content: "⚠";
+    font-size: 0.8rem;
+}
+
+/* Modal */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.6);
+    backdrop-filter: blur(4px);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    opacity: 0;
+    visibility: hidden;
+    transition: var(--transition);
+}
+
+.modal-overlay.active {
+    opacity: 1;
+    visibility: visible;
+}
+
+.modal {
+    background: white;
+    border-radius: var(--radius);
+    padding: 2rem;
+    max-width: 500px;
+    width: 90%;
+    max-height: 90vh;
+    overflow-y: auto;
+    transform: scale(0.9);
+    transition: var(--transition);
+}
+
+.modal-overlay.active .modal {
+    transform: scale(1);
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 1.5rem;
+    padding-bottom: 1rem;
+    border-bottom: 2px solid var(--bg-light);
+}
+
+.modal-header h3 {
+    font-size: 1.25rem;
+    color: var(--primary);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: var(--transition);
+}
+
+.modal-close:hover {
+    color: var(--danger);
+}
+
+.modal-footer {
+    display: flex;
+    gap: 10px;
+    justify-content: flex-end;
+    margin-top: 1.5rem;
+    padding-top: 1rem;
+    border-top: 2px solid var(--bg-light);
+}
+
+/* Toast Notifications */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 2000;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.toast {
+    background: white;
+    padding: 1rem 1.5rem;
+    border-radius: var(--radius);
+    box-shadow: var(--shadow-lg);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    min-width: 300px;
+    animation: slideIn 0.3s ease;
+    border-left: 4px solid;
+}
+
+@keyframes slideIn {
+    from {
+        transform: translateX(100%);
+        opacity: 0;
+    }
+    to {
+        transform: translateX(0);
+        opacity: 1;
+    }
+}
+
+.toast.success {
+    border-left-color: var(--success);
+}
+
+.toast.success i {
+    color: var(--success);
+}
+
+.toast.error {
+    border-left-color: var(--danger);
+}
+
+.toast.error i {
+    color: var(--danger);
+}
+
+.toast.warning {
+    border-left-color: var(--warning);
+}
+
+.toast.warning i {
+    color: var(--warning);
+}
+
+.toast i {
+    font-size: 1.2rem;
+}
+
+.toast-content {
+    flex: 1;
+}
+
+.toast-content strong {
+    display: block;
+    margin-bottom: 2px;
+}
+
+.toast-content span {
+    font-size: 0.9rem;
+    color: var(--text-secondary);
+}
+
+/* Badges */
+.badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 20px;
+    font-size: 0.8rem;
+    font-weight: 600;
+}
+
+.badge-success {
+    background: rgba(42, 157, 143, 0.15);
+    color: var(--secondary);
+}
+
+.badge-warning {
+    background: rgba(244, 162, 97, 0.15);
+    color: #c77d32;
+}
+
+.badge-danger {
+    background: rgba(230, 57, 70, 0.15);
+    color: var(--danger);
+}
+
+/* Footer */
+footer {
+    text-align: center;
+    padding: 2rem;
+    color: var(--text-secondary);
+    font-size: 0.9rem;
+}
+
+footer a {
+    color: var(--primary);
+    text-decoration: none;
+}
+
+/* Search & Filter */
+.toolbar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+    align-items: center;
+}
+
+.search-box {
+    flex: 1;
+    min-width: 250px;
+    position: relative;
+}
+
+.search-box i {
+    position: absolute;
+    left: 14px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: var(--text-secondary);
+}
+
+.search-box input {
+    width: 100%;
+    padding: 12px 14px 12px 42px;
+    border: 2px solid var(--border);
+    border-radius: 8px;
+    font-size: 0.95rem;
+    transition: var(--transition);
+}
+
+.search-box input:focus {
+    outline: none;
+    border-color: var(--primary);
+    box-shadow: 0 0 0 3px rgba(13, 59, 102, 0.1);
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    header {
+        flex-direction: column;
+        gap: 1rem;
+        text-align: center;
+    }
+    
+    .header-actions {
+        width: 100%;
+        justify-content: center;
+    }
+    
+    .container {
+        padding: 1rem;
+    }
+    
+    .form-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .stats-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .toolbar {
+        flex-direction: column;
+    }
+    
+    .search-box {
+        width: 100%;
+    }
+}
+
+/* Utilities */
+.hidden {
+    display: none !important;
+}
+
+.text-center {
+    text-align: center;
+}
+
+.mt-1 { margin-top: 0.5rem; }
+.mt-2 { margin-top: 1rem; }
+.mb-1 { margin-bottom: 0.5rem; }
+.mb-2 { margin-bottom: 1rem; }
+
+/* Print Styles */
+@media print {
+    header, .btn, .toolbar, .alert {
+        display: none !important;
+    }
+    
+    .card {
+        box-shadow: none;
+        border: 1px solid #ddd;
+    }
+}
+</style>
+</head>
+
+<body>
+
+<!-- Toast Container -->
+<div class="toast-container" id="toastContainer"></div>
+
+<!-- Header -->
+<header>
+    <div class="header-brand">
+        <i class="fas fa-hospital-alt"></i>
+        <div>
+            <h1>Gestion du Parc Automobile</h1>
+            <span>Zone Sanitaire Allada-Toffo-Zè</span>
+        </div>
+    </div>
+    <div class="header-actions">
+        <button class="btn btn-outline" onclick="adminLogin()" style="border-color: white; color: white;">
+            <i class="fas fa-lock"></i> Espace Admin
+        </button>
+    </div>
+</header>
+
+<div class="container">
+
+    <!-- Form Section -->
+    <div id="formSection" class="card">
+        <div class="card-header">
+            <i class="fas fa-car-side"></i>
+            <h2>Déclaration d'un Véhicule</h2>
+        </div>
+
+        <form id="vehicleForm">
+            <div class="form-grid">
+                <div class="form-group">
+                    <label><i class="fas fa-hospital"></i> Centre de Santé</label>
+                    <select id="centre" class="form-control" required>
+                        <option value="">-- Sélectionner votre centre --</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-car"></i> Type de Véhicule</label>
+                    <select id="type" class="form-control" required>
+                        <option value="">-- Sélectionner le type --</option>
+                        <option value="Moto">🏍️ Moto</option>
+                        <option value="Voiture">🚗 Voiture</option>
+                        <option value="Ambulance">🚑 Ambulance</option>
+                        <option value="Camion">🚛 Camion</option>
+                        <option value="Autre">📦 Autre</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-id-card"></i> Immatriculation</label>
+                    <input type="text" id="immatriculation" class="form-control" placeholder="Ex: AB 1234 RB" required>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-barcode"></i> Numéro de Châssis</label>
+                    <input type="text" id="chassis" class="form-control" placeholder="17 caractères" required minlength="5">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-calendar-alt"></i> Année d'Acquisition</label>
+                    <input type="number" id="annee" class="form-control" placeholder="Ex: 2020" required min="1990" max="2030">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-tachometer-alt"></i> Kilométrage Actuel</label>
+                    <input type="number" id="km" class="form-control" placeholder="Ex: 50000" required min="0">
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-thermometer-half"></i> État du Véhicule</label>
+                    <select id="etat" class="form-control" required>
+                        <option value="Bon">✅ Bon état</option>
+                        <option value="Moyen">⚠️ État moyen</option>
+                        <option value="Mauvais">❌ Mauvais état</option>
+                    </select>
+                </div>
+
+                <div class="form-group">
+                    <label><i class="fas fa-gas-pump"></i> Carburant</label>
+                    <select id="carburant" class="form-control" required>
+                        <option value="Essence">⛽ Essence</option>
+                        <option value="Diesel">🛢️ Diesel</option>
+                        <option value="Électrique">⚡ Électrique</option>
+                    </select>
+                </div>
+
+                <div class="form-group full-width">
+                    <label><i class="fas fa-comment-alt"></i> Observations</label>
+                    <textarea id="obs" class="form-control" placeholder="Informations complémentaires sur le véhicule..."></textarea>
+                </div>
+
+                <div class="form-group full-width">
+                    <button type="submit" class="btn btn-success" style="width: 100%;">
+                        <i class="fas fa-save"></i> Enregistrer le Véhicule
+                    </button>
+                </div>
+            </div>
+        </form>
+    </div>
+
+    <!-- Admin Section -->
+    <div id="adminSection" class="hidden">
+        
+        <!-- Stats -->
+        <div class="stats-grid">
+            <div class="stat-card">
+                <div class="stat-icon blue">
+                    <i class="fas fa-car"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalVehicules">0</h3>
+                    <p>Total Véhicules</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon green">
+                    <i class="fas fa-hospital-user"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="totalCentres">0</h3>
+                    <p>Centres ayant soumis</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon orange">
+                    <i class="fas fa-clock"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="centresRestants">0</h3>
+                    <p>Centres en attente</p>
+                </div>
+            </div>
+            
+            <div class="stat-card">
+                <div class="stat-icon red">
+                    <i class="fas fa-exclamation-triangle"></i>
+                </div>
+                <div class="stat-content">
+                    <h3 id="vehiculesMauvais">0</h3>
+                    <p>Véhicules en mauvais état</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Data Table Card -->
+        <div class="card">
+            <div class="card-header">
+                <i class="fas fa-table"></i>
+                <h2>Liste des Véhicules Déclarés</h2>
+            </div>
+
+            <!-- Toolbar -->
+            <div class="toolbar">
+                <div class="search-box">
+                    <i class="fas fa-search"></i>
+                    <input type="text" id="searchInput" placeholder="Rechercher par centre, immatriculation..." onkeyup="filterTable()">
+                </div>
+                
+                <select id="filterEtat" class="form-control" style="width: auto;" onchange="filterTable()">
+                    <option value="">Tous les états</option>
+                    <option value="Bon">✅ Bon</option>
+                    <option value="Moyen">⚠️ Moyen</option>
+                    <option value="Mauvais">❌ Mauvais</option>
+                </select>
+
+                <button class="btn btn-success" onclick="exportExcel()">
+                    <i class="fas fa-file-excel"></i> Excel
+                </button>
+                <button class="btn btn-danger" onclick="exportPDF()">
+                    <i class="fas fa-file-pdf"></i> PDF
+                </button>
+                <button class="btn btn-secondary" onclick="logout()">
+                    <i class="fas fa-sign-out-alt"></i> Fermer
+                </button>
+            </div>
+
+            <div class="table-wrapper">
+                <table id="dataTable">
+                    <thead>
+                        <tr>
+                            <th>Centre</th>
+                            <th>Type</th>
+                            <th>Immatriculation</th>
+                            <th>Châssis</th>
+                            <th>Année</th>
+                            <th>KM</th>
+                            <th>État</th>
+                            <th>Carburant</th>
+                            <th>Date</th>
+                            <th>Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody></tbody>
+                </table>
+            </div>
+
+            <!-- Missing Centers Alert -->
+            <div class="alert alert-warning" id="missingAlert">
+                <div class="alert-header">
+                    <i class="fas fa-exclamation-circle"></i>
+                    <h4>Centres n'ayant pas encore déclaré leurs véhicules</h4>
+                </div>
+                <ul class="missing-list" id="missingList"></ul>
+            </div>
+        </div>
+    </div>
+
+</div>
+
+<!-- Footer -->
+<footer>
+    <p>© 2025 Zone Sanitaire Allada-Toffo-Zè | Développé avec ❤️ pour la santé publique</p>
+</footer>
+
+<!-- Edit Modal -->
+<div class="modal-overlay" id="editModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-edit"></i> Modifier le Véhicule</h3>
+            <button class="modal-close" onclick="closeModal()">&times;</button>
+        </div>
+        
+        <form id="editForm">
+            <input type="hidden" id="editCentre">
+            <input type="hidden" id="editIndex">
+            
+            <div class="form-group mb-2">
+                <label>Type</label>
+                <select id="editType" class="form-control" required>
+                    <option value="Moto">Moto</option>
+                    <option value="Voiture">Voiture</option>
+                    <option value="Ambulance">Ambulance</option>
+                    <option value="Camion">Camion</option>
+                    <option value="Autre">Autre</option>
+                </select>
+            </div>
+            
+            <div class="form-group mb-2">
+                <label>Immatriculation</label>
+                <input type="text" id="editImmat" class="form-control" required>
+            </div>
+            
+            <div class="form-group mb-2">
+                <label>Châssis</label>
+                <input type="text" id="editChassis" class="form-control" required>
+            </div>
+            
+            <div class="form-group mb-2">
+                <label>Année</label>
+                <input type="number" id="editAnnee" class="form-control" required>
+            </div>
+            
+            <div class="form-group mb-2">
+                <label>Kilométrage</label>
+                <input type="number" id="editKm" class="form-control" required>
+            </div>
+            
+            <div class="form-group mb-2">
+                <label>État</label>
+                <select id="editEtat" class="form-control" required>
+                    <option value="Bon">Bon</option>
+                    <option value="Moyen">Moyen</option>
+                    <option value="Mauvais">Mauvais</option>
+                </select>
+            </div>
+            
+            <div class="form-group mb-2">
+                <label>Carburant</label>
+                <select id="editCarburant" class="form-control" required>
+                    <option value="Essence">Essence</option>
+                    <option value="Diesel">Diesel</option>
+                    <option value="Électrique">Électrique</option>
+                </select>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
+                <button type="submit" class="btn btn-success">
+                    <i class="fas fa-save"></i> Sauvegarder
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<!-- Delete Confirmation Modal -->
+<div class="modal-overlay" id="deleteModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-trash-alt" style="color: var(--danger);"></i> Confirmer la suppression</h3>
+            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
+        </div>
+        
+        <p>Êtes-vous sûr de vouloir supprimer ce véhicule ? Cette action est irréversible.</p>
+        
+        <input type="hidden" id="deleteCentre">
+        <input type="hidden" id="deleteIndex">
+        
+        <div class="modal-footer">
+            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Annuler</button>
+            <button type="button" class="btn btn-danger" onclick="confirmDelete()">
+                <i class="fas fa-trash"></i> Supprimer
+            </button>
+        </div>
+    </div>
+</div>
+
+<!-- Admin Login Modal -->
+<div class="modal-overlay" id="loginModal">
+    <div class="modal">
+        <div class="modal-header">
+            <h3><i class="fas fa-shield-alt"></i> Accès Administrateur</h3>
+            <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+        </div>
+        
+        <form id="loginForm" onsubmit="checkAdminCode(event)">
+            <div class="form-group mb-2">
+                <label><i class="fas fa-key"></i> Code d'accès</label>
+                <input type="password" id="adminCode" class="form-control" placeholder="Entrez le code admin" required autofocus>
+            </div>
+            
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" onclick="closeLoginModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary">
+                    <i class="fas fa-sign-in-alt"></i> Connexion
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<script>
+// =====================================================
+// CONFIGURATION
+// =====================================================
+const CONFIG = {
+    ADMIN_CODE: "ATZ2025",
+    STORAGE_KEY: "vehicules_zone_atz",
+    APP_VERSION: "2.0.0"
+};
+
+// Liste des centres de santé de la zone ATZ
+const centresList = [
+    "CS Ahouannonzoun", "CS Soyo", "CS Lissegazoun", "CS Attogon", 
+    "CS Togoudo", "CS Lon Agonmey", "CS Hinvi", "CS Ayou", 
+    "CS Aota", "CS Avakpa", "CS Topka", "CS Sékou", 
+    "CS Agbanou", "CS Allada", "Hôpital de Zone Allada-Toffo-Zè", 
+    "Bureau de Zone ATZ", "CS Djanglanme", "CS Agon", 
+    "CS Dame", "CS Kpomè", "CS Houègbo", "CS Sèhouè", 
+    "CS Colli", "CS Sey", "CS Agué", "CS Coussi", 
+    "CS Toffo Centre", "CS Dawé", "CS Ahozonnoude", "CS Zè", 
+    "CS Dodji-Bata", "CS Sedjedénou", "CS Tangbo", "CS Djigbé-Agué", 
+    "CS Adjan", "CS Koundokpoé"
+].sort();
+
+// =====================================================
+// INITIALISATION
+// =====================================================
+document.addEventListener('DOMContentLoaded', function() {
+    initCentreSelect();
+    initFormValidation();
+    initEditForm();
+});
+
+function initCentreSelect() {
+    const centreSelect = document.getElementById("centre");
+    centresList.forEach(c => {
+        const opt = document.createElement("option");
+        opt.value = c;
+        opt.textContent = c;
+        centreSelect.appendChild(opt);
+    });
+}
+
+function initFormValidation() {
+    document.getElementById("vehicleForm").addEventListener("submit", handleFormSubmit);
+}
+
+function initEditForm() {
+    document.getElementById("editForm").addEventListener("submit", handleEditSubmit);
+}
+
+// =====================================================
+// STORAGE FUNCTIONS
+// =====================================================
+function getData() {
+    try {
+        return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || {};
+    } catch (e) {
+        console.error("Erreur de lecture des données:", e);
+        return {};
+    }
+}
+
+function saveData(data) {
+    try {
+        localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(data));
+        return true;
+    } catch (e) {
+        console.error("Erreur de sauvegarde:", e);
+        showToast("Erreur", "Impossible de sauvegarder les données", "error");
+        return false;
+    }
+}
+
+// =====================================================
+// TOAST NOTIFICATIONS
+// =====================================================
+function showToast(title, message, type = "success") {
+    const container = document.getElementById("toastContainer");
+    const toast = document.createElement("div");
+    toast.className = `toast ${type}`;
+    
+    const icons = {
+        success: "fa-check-circle",
+        error: "fa-times-circle",
+        warning: "fa-exclamation-triangle"
+    };
+    
+    toast.innerHTML = `
+        <i class="fas ${icons[type]}"></i>
+        <div class="toast-content">
+            <strong>${title}</strong>
+            <span>${message}</span>
+        </div>
+    `;
+    
+    container.appendChild(toast);
+    
+    setTimeout(() => {
+        toast.style.animation = "slideIn 0.3s ease reverse";
+        setTimeout(() => toast.remove(), 300);
+    }, 4000);
+}
+
+// =====================================================
+// FORM HANDLING
+// =====================================================
+function handleFormSubmit(e) {
+    e.preventDefault();
+    
+    const centre = document.getElementById("centre").value;
+    const data = getData();
+    
+    if (!data[centre]) data[centre] = [];
+    
+    const vehicule = {
+        type: document.getElementById("type").value,
+        immatriculation: document.getElementById("immatriculation").value.toUpperCase(),
+        chassis: document.getElementById("chassis").value.toUpperCase(),
+        annee: document.getElementById("annee").value,
+        km: document.getElementById("km").value,
+        etat: document.getElementById("etat").value,
+        carburant: document.getElementById("carburant").value,
+        observations: document.getElementById("obs").value,
+        date: new Date().toLocaleDateString("fr-FR"),
+        timestamp: Date.now()
+    };
+    
+    // Vérifier si l'immatriculation existe déjà
+    const exists = data[centre].some(v => v.immatriculation === vehicule.immatriculation);
+    if (exists) {
+        showToast("Attention", "Ce véhicule est déjà enregistré", "warning");
+        return;
+    }
+    
+    data[centre].push(vehicule);
+    
+    if (saveData(data)) {
+        showToast("Succès", "Véhicule enregistré avec succès", "success");
+        e.target.reset();
+    }
+}
+
+// =====================================================
+// ADMIN AUTHENTICATION
+// =====================================================
+function adminLogin() {
+    document.getElementById("loginModal").classList.add("active");
+    document.getElementById("adminCode").focus();
+}
+
+function closeLoginModal() {
+    document.getElementById("loginModal").classList.remove("active");
+    document.getElementById("adminCode").value = "";
+}
+
+function checkAdminCode(e) {
+    e.preventDefault();
+    const code = document.getElementById("adminCode").value;
+    
+    if (code === CONFIG.ADMIN_CODE) {
+        closeLoginModal();
+        document.getElementById("formSection").classList.add("hidden");
+        document.getElementById("adminSection").classList.remove("hidden");
+        loadData();
+        showToast("Bienvenue", "Connecté en tant qu'administrateur", "success");
+    } else {
+        showToast("Erreur", "Code d'accès incorrect", "error");
+        document.getElementById("adminCode").value = "";
+    }
+}
+
+function logout() {
+    document.getElementById("adminSection").classList.add("hidden");
+    document.getElementById("formSection").classList.remove("hidden");
+    showToast("Déconnexion", "Session administrateur fermée", "success");
+}
+
+// =====================================================
+// DATA DISPLAY
+// =====================================================
+function loadData() {
+    const data = getData();
+    const tbody = document.querySelector("#dataTable tbody");
+    tbody.innerHTML = "";
+    
+    let totalVeh = 0;
+    let vehiculesMauvais = 0;
+    const centresSoumis = Object.keys(data);
+    
+    centresSoumis.sort().forEach(centre => {
+        // Row for centre name
+        const centreRow = tbody.insertRow();
+        centreRow.classList.add("centre-row");
+        const cell = centreRow.insertCell(0);
+        cell.colSpan = 10;
+        cell.innerHTML = `<i class="fas fa-hospital"></i> ${centre} <span style="font-weight: normal;">(${data[centre].length} véhicule(s))</span>`;
+        
+        // Rows for vehicles
+        data[centre].forEach((v, index) => {
+            totalVeh++;
+            if (v.etat === "Mauvais") vehiculesMauvais++;
+            
+            const row = tbody.insertRow();
+            row.dataset.centre = centre;
+            row.dataset.index = index;
+            row.dataset.searchable = `${centre} ${v.type} ${v.immatriculation} ${v.chassis}`.toLowerCase();
+            row.dataset.etat = v.etat;
+            
+            row.insertCell(0).innerText = "";
+            row.insertCell(1).innerText = v.type;
+            row.insertCell(2).innerHTML = `<strong>${v.immatriculation}</strong>`;
+            row.insertCell(3).innerText = v.chassis;
+            row.insertCell(4).innerText = v.annee;
+            row.insertCell(5).innerText = Number(v.km).toLocaleString() + " km";
+            
+            // État avec badge
+            const etatCell = row.insertCell(6);
+            const badgeClass = v.etat === "Bon" ? "badge-success" : v.etat === "Moyen" ? "badge-warning" : "badge-danger";
+            etatCell.innerHTML = `<span class="badge ${badgeClass}">${v.etat}</span>`;
+            
+            row.insertCell(7).innerText = v.carburant || "N/A";
+            row.insertCell(8).innerText = v.date;
+            
+            // Actions
+            const actionsCell = row.insertCell(9);
+            actionsCell.innerHTML = `
+                <div class="action-btns">
+                    <button class="btn btn-sm btn-primary" onclick="editVehicle('${centre}', ${index})" title="Modifier">
+                        <i class="fas fa-edit"></i>
+                    </button>
+                    <button class="btn btn-sm btn-danger" onclick="deleteVehicle('${centre}', ${index})" title="Supprimer">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+            `;
+        });
+    });
+    
+    // Update stats
+    document.getElementById("totalVehicules").innerText = totalVeh;
+    document.getElementById("totalCentres").innerText = centresSoumis.length;
+    document.getElementById("vehiculesMauvais").innerText = vehiculesMauvais;
+    
+    // Missing centres
+    const centresRestants = centresList.filter(c => !centresSoumis.includes(c));
+    document.getElementById("centresRestants").innerText = centresRestants.length;
+    
+    const ul = document.getElementById("missingList");
+    ul.innerHTML = "";
+    
+    if (centresRestants.length === 0) {
+        document.getElementById("missingAlert").style.display = "none";
+    } else {
+        document.getElementById("missingAlert").style.display = "block";
+        centresRestants.forEach(c => {
+            const li = document.createElement("li");
+            li.innerText = c;
+            ul.appendChild(li);
+        });
+    }
+}
+
+// =====================================================
+// SEARCH & FILTER
+// =====================================================
+function filterTable() {
+    const searchValue = document.getElementById("searchInput").value.toLowerCase();
+    const filterEtat = document.getElementById("filterEtat").value;
+    const rows = document.querySelectorAll("#dataTable tbody tr:not(.centre-row)");
+    const centreRows = document.querySelectorAll("#dataTable tbody tr.centre-row");
+    
+    // Track which centres have visible rows
+    const visibleCentres = new Set();
+    
+    rows.forEach(row => {
+        const matchSearch = !searchValue || row.dataset.searchable.includes(searchValue);
+        const matchEtat = !filterEtat || row.dataset.etat === filterEtat;
+        
+        if (matchSearch && matchEtat) {
+            row.style.display = "";
+            visibleCentres.add(row.dataset.centre);
+        } else {
+            row.style.display = "none";
+        }
+    });
+    
+    // Show/hide centre rows based on visible children
+    centreRows.forEach(row => {
+        const centreName = row.cells[0].textContent.split(" (")[0].replace(/^.*? /, '');
+        row.style.display = visibleCentres.has(centreName) || (!searchValue && !filterEtat) ? "" : "none";
+    });
+}
+
+// =====================================================
+// EDIT FUNCTIONS
+// =====================================================
+function editVehicle(centre, index) {
+    const data = getData();
+    const v = data[centre][index];
+    
+    document.getElementById("editCentre").value = centre;
+    document.getElementById("editIndex").value = index;
+    document.getElementById("editType").value = v.type;
+    document.getElementById("editImmat").value = v.immatriculation;
+    document.getElementById("editChassis").value = v.chassis;
+    document.getElementById("editAnnee").value = v.annee;
+    document.getElementById("editKm").value = v.km;
+    document.getElementById("editEtat").value = v.etat;
+    document.getElementById("editCarburant").value = v.carburant || "Essence";
+    
+    document.getElementById("editModal").classList.add("active");
+}
+
+function closeModal() {
+    document.getElementById("editModal").classList.remove("active");
+}
+
+function handleEditSubmit(e) {
+    e.preventDefault();
+    
+    const centre = document.getElementById("editCentre").value;
+    const index = document.getElementById("editIndex").value;
+    const data = getData();
+    
+    data[centre][index] = {
+        ...data[centre][index],
+        type: document.getElementById("editType").value,
+        immatriculation: document.getElementById("editImmat").value.toUpperCase(),
+        chassis: document.getElementById("editChassis").value.toUpperCase(),
+        annee: document.getElementById("editAnnee").value,
+        km: document.getElementById("editKm").value,
+        etat: document.getElementById("editEtat").value,
+        carburant: document.getElementById("editCarburant").value,
+        modifiedAt: new Date().toLocaleDateString("fr-FR")
+    };
+    
+    if (saveData(data)) {
+        closeModal();
+        loadData();
+        showToast("Modifié", "Véhicule mis à jour avec succès", "success");
+    }
+}
+
+// =====================================================
+// DELETE FUNCTIONS
+// =====================================================
+function deleteVehicle(centre, index) {
+    document.getElementById("deleteCentre").value = centre;
+    document.getElementById("deleteIndex").value = index;
+    document.getElementById("deleteModal").classList.add("active");
+}
+
+function closeDeleteModal() {
+    document.getElementById("deleteModal").classList.remove("active");
+}
+
+function confirmDelete() {
+    const centre = document.getElementById("deleteCentre").value;
+    const index = document.getElementById("deleteIndex").value;
+    const data = getData();
+    
+    data[centre].splice(index, 1);
+    
+    // Remove centre if empty
+    if (data[centre].length === 0) {
+        delete data[centre];
+    }
+    
+    if (saveData(data)) {
+        closeDeleteModal();
+        loadData();
+        showToast("Supprimé", "Véhicule supprimé avec succès", "success");
+    }
+}
+
+// =====================================================
+// EXPORT FUNCTIONS
+// =====================================================
+function exportExcel() {
+    const data = getData();
+    const rows = [];
+    
+    Object.keys(data).sort().forEach(centre => {
+        data[centre].forEach(v => {
+            rows.push({
+                "Centre de Santé": centre,
+                "Type": v.type,
+                "Immatriculation": v.immatriculation,
+                "N° Châssis": v.chassis,
+                "Année": v.annee,
+                "Kilométrage": v.km,
+                "État": v.etat,
+                "Carburant": v.carburant || "N/A",
+                "Observations": v.observations || "",
+                "Date Déclaration": v.date
+            });
+        });
+    });
+    
+    if (rows.length === 0) {
+        showToast("Attention", "Aucune donnée à exporter", "warning");
+        return;
+    }
+    
+    const ws = XLSX.utils.json_to_sheet(rows);
+    const wb = XLSX.utils.book_new();
+    
+    // Set column widths
+    ws['!cols'] = [
+        { wch: 30 }, { wch: 12 }, { wch: 15 }, { wch: 20 },
+        { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 12 },
+        { wch: 30 }, { wch: 15 }
+    ];
+    
+    XLSX.utils.book_append_sheet(wb, ws, "Véhicules");
+    XLSX.writeFile(wb, `rapport_vehicules_ATZ_${new Date().toISOString().split('T')[0]}.xlsx`);
+    
+    showToast("Export", "Fichier Excel généré avec succès", "success");
+}
+
+function exportPDF() {
+    const { jsPDF } = window.jspdf;
+    const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
+    const data = getData();
+    
+    if (Object.keys(data).length === 0) {
+        showToast("Attention", "Aucune donnée à exporter", "warning");
+        return;
+    }
+    
+    // Header
+    doc.setFillColor(13, 59, 102);
+    doc.rect(0, 0, 297, 30, 'F');
+    
+    doc.setTextColor(255, 255, 255);
+    doc.setFontSize(18);
+    doc.setFont(undefined, 'bold');
+    doc.text("RAPPORT OFFICIEL - GESTION DU PARC AUTOMOBILE", 148, 12, { align: 'center' });
+    
+    doc.setFontSize(12);
+    doc.setFont(undefined, 'normal');
+    doc.text("Zone Sanitaire Allada-Toffo-Zè", 148, 20, { align: 'center' });
+    
+    doc.setTextColor(0, 0, 0);
+    doc.setFontSize(10);
+    doc.text(`Date d'édition: ${new Date().toLocaleDateString('fr-FR')}`, 14, 40);
+    
+    // Statistics
+    const totalVehicles = Object.values(data).reduce((sum, arr) => sum + arr.length, 0);
+    const totalCentres = Object.keys(data).length;
+    doc.text(`Total véhicules: ${totalVehicles} | Centres déclarants: ${totalCentres}/${centresList.length}`, 14, 48);
+    
+    let y = 58;
+    
+    Object.keys(data).sort().forEach(centre => {
+        // Check if we need a new page
+        if (y > 180) {
+            doc.addPage();
+            y = 20;
+        }
+        
+        doc.setFillColor(224, 242, 254);
+        doc.rect(14, y - 5, 269, 8, 'F');
+        doc.setFontSize(11);
+        doc.setFont(undefined, 'bold');
+        doc.text(`${centre} (${data[centre].length} véhicule(s))`, 16, y);
+        y += 4;
+        
+        doc.autoTable({
+            startY: y,
+            head: [["Type", "Immatriculation", "Châssis", "Année", "KM", "État", "Carburant"]],
+            body: data[centre].map(v => [
+                v.type,
+                v.immatriculation,
+                v.chassis,
+                v.annee,
+                Number(v.km).toLocaleString(),
+                v.etat,
+                v.carburant || "N/A"
+            ]),
+            theme: 'striped',
+            headStyles: {
+                fillColor: [13, 59, 102],
+                fontSize: 9
+            },
+            styles: {
+                fontSize: 8,
+                cellPadding: 2
+            },
+            margin: { left: 14, right: 14 }
+        });
+        
+        y = doc.lastAutoTable.finalY + 12;
+    });
+    
+    // Footer on each page
+    const pageCount = doc.internal.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.setTextColor(128, 128, 128);
+        doc.text(`Page ${i} / ${pageCount}`, 148, 200, { align: 'center' });
+        doc.text("© Zone Sanitaire ATZ - Document généré automatiquement", 148, 205, { align: 'center' });
+    }
+    
+    doc.save(`rapport_vehicules_ATZ_${new Date().toISOString().split('T')[0]}.pdf`);
+    showToast("Export", "Fichier PDF généré avec succès", "success");
+}
+
+// Close modals on escape key
+document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+        closeModal();
+        closeDeleteModal();
+        closeLoginModal();
+    }
+});
+
+// Close modals on overlay click
+document.querySelectorAll('.modal-overlay').forEach(overlay => {
+    overlay.addEventListener('click', function(e) {
+        if (e.target === this) {
+            closeModal();
+            closeDeleteModal();
+            closeLoginModal();
+        }
+    });
+});
+</script>
+
+</body>
+</html>

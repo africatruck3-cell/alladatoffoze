@@ -23,6 +23,10 @@
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
 
+<!-- Firebase Realtime Database -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
+
 <style>
 :root {
     --primary: #0d3b66;
@@ -1311,8 +1315,48 @@ footer a {
 const CONFIG = {
     ADMIN_CODE: "ATZ2025",
     STORAGE_KEY: "vehicules_zone_atz",
-    APP_VERSION: "2.0.0"
+    APP_VERSION: "3.0.0"
 };
+
+// =====================================================
+// FIREBASE - BASE DE DONNÉES EN LIGNE
+// =====================================================
+// ╔══════════════════════════════════════════════════════╗
+// ║  INSTRUCTIONS DE CONFIGURATION FIREBASE :           ║
+// ║  1. Allez sur https://console.firebase.google.com   ║
+// ║  2. Créez un nouveau projet (ex: "parc-auto-atz")   ║
+// ║  3. Cliquez "Realtime Database" > Créer             ║
+// ║  4. Choisissez le mode "test" pour les règles       ║
+// ║  5. Allez dans Paramètres > Général > Vos applis    ║
+// ║  6. Ajoutez une appli Web (</>)                     ║
+// ║  7. Copiez les valeurs de firebaseConfig ci-dessous ║
+// ╚══════════════════════════════════════════════════════╝
+const FIREBASE_CONFIG = {
+    apiKey: "VOTRE_API_KEY",
+    authDomain: "VOTRE_PROJET.firebaseapp.com",
+    databaseURL: "https://VOTRE_PROJET-default-rtdb.firebaseio.com",
+    projectId: "VOTRE_PROJET",
+    storageBucket: "VOTRE_PROJET.appspot.com",
+    messagingSenderId: "VOTRE_SENDER_ID",
+    appId: "VOTRE_APP_ID"
+};
+
+let db = null;
+let firebaseReady = false;
+let cachedData = {};
+
+try {
+    if (FIREBASE_CONFIG.apiKey !== "VOTRE_API_KEY") {
+        firebase.initializeApp(FIREBASE_CONFIG);
+        db = firebase.database();
+        firebaseReady = true;
+        console.log("✅ Firebase connecté - Base de données en ligne active");
+    } else {
+        console.warn("⚠️ Firebase non configuré - Mode hors ligne (localStorage)");
+    }
+} catch(e) {
+    console.error("❌ Erreur Firebase:", e);
+}
 
 // Liste des centres de santé de la zone ATZ
 const centresList = [
@@ -1335,6 +1379,16 @@ document.addEventListener('DOMContentLoaded', function() {
     initCentreSelect();
     initFormValidation();
     initEditForm();
+    if (firebaseReady) {
+        setupFirebaseListener();
+    }
+    // Indicateur de connexion
+    const footer = document.querySelector('footer p');
+    if (firebaseReady) {
+        footer.innerHTML += ' | <span style="color: #2a9d8f;">🟢 Base de données en ligne</span>';
+    } else {
+        footer.innerHTML += ' | <span style="color: #f4a261;">🟡 Mode local - <a href="#" style="color: #e76f51;" onclick="alert(\'Configurez Firebase dans le code source (FIREBASE_CONFIG)\'); return false;">Configurer Firebase</a></span>';
+    }
 });
 
 function initCentreSelect() {
@@ -1359,6 +1413,9 @@ function initEditForm() {
 // STORAGE FUNCTIONS
 // =====================================================
 function getData() {
+    if (firebaseReady) {
+        return cachedData;
+    }
     try {
         return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || {};
     } catch (e) {
@@ -1376,6 +1433,45 @@ function saveData(data) {
         showToast("Erreur", "Impossible de sauvegarder les données", "error");
         return false;
     }
+}
+
+// Helper: trouver un véhicule par centre et identifiant
+function getVehicle(centre, id) {
+    const data = getData();
+    if (!data[centre]) return null;
+    if (firebaseReady) {
+        return data[centre].find(item => item._key === id) || null;
+    }
+    return data[centre][parseInt(id)] || null;
+}
+
+// Firebase: écouter les changements en temps réel
+function setupFirebaseListener() {
+    if (!firebaseReady) return;
+    
+    db.ref('vehicules').on('value', (snapshot) => {
+        const rawData = snapshot.val() || {};
+        cachedData = {};
+        
+        Object.keys(rawData).forEach(centre => {
+            cachedData[centre] = [];
+            const centreData = rawData[centre];
+            if (centreData && typeof centreData === 'object') {
+                Object.keys(centreData).forEach(key => {
+                    const vehicle = { ...centreData[key], _key: key };
+                    cachedData[centre].push(vehicle);
+                });
+            }
+        });
+        
+        // Rafraîchir automatiquement la vue admin si visible
+        if (!document.getElementById("adminSection").classList.contains("hidden")) {
+            loadData();
+        }
+    }, (error) => {
+        console.error("Erreur Firebase:", error);
+        showToast("Erreur", "Problème de connexion à la base de données", "error");
+    });
 }
 
 // =====================================================
@@ -1475,18 +1571,16 @@ function resetUploadZone(previewId, zoneId, fileNameId) {
     if (fileNameEl) fileNameEl.textContent = "";
 }
 
-function viewCarteGrise(centre, index) {
-    const data = getData();
-    const v = data[centre][index];
-    if (v.carteGriseImage) {
+function viewCarteGrise(centre, id) {
+    const v = getVehicle(centre, id);
+    if (v && v.carteGriseImage) {
         const viewer = document.getElementById("imageViewer");
         const img = document.getElementById("imageViewerImg");
         img.src = v.carteGriseImage;
         viewer.classList.add("active");
         
-        // Setup download button
         document.getElementById("imageViewerDownload").onclick = function() {
-            downloadCarteGrise(centre, index);
+            downloadCarteGrise(centre, id);
         };
     }
 }
@@ -1495,10 +1589,9 @@ function closeImageViewer() {
     document.getElementById("imageViewer").classList.remove("active");
 }
 
-function downloadCarteGrise(centre, index) {
-    const data = getData();
-    const v = data[centre][index];
-    if (v.carteGriseImage) {
+function downloadCarteGrise(centre, id) {
+    const v = getVehicle(centre, id);
+    if (v && v.carteGriseImage) {
         const link = document.createElement('a');
         link.href = v.carteGriseImage;
         link.download = `carte_grise_${v.immatriculation.replace(/\s+/g, '_')}_${centre.replace(/\s+/g, '_')}.jpg`;
@@ -1519,8 +1612,7 @@ function handleFormSubmit(e) {
     
     const centre = document.getElementById("centre").value;
     const data = getData();
-    
-    if (!data[centre]) data[centre] = [];
+    const centreVehicles = data[centre] || [];
     
     const vehicule = {
         type: document.getElementById("type").value,
@@ -1537,7 +1629,7 @@ function handleFormSubmit(e) {
     };
     
     // Vérifier si l'immatriculation existe déjà
-    const exists = data[centre].some(v => v.immatriculation === vehicule.immatriculation);
+    const exists = centreVehicles.some(v => v.immatriculation === vehicule.immatriculation);
     if (exists) {
         showToast("Attention", "Ce véhicule est déjà enregistré", "warning");
         return;
@@ -1550,13 +1642,26 @@ function handleFormSubmit(e) {
         vehicule.carteGriseImage = cgCompressed;
     }
     
-    data[centre].push(vehicule);
-    
-    if (saveData(data)) {
-        showToast("Succès", "Véhicule enregistré avec succès", "success");
+    const resetForm = () => {
         e.target.reset();
         cgInput.dataset.compressed = "";
         resetUploadZone('carteGrisePreview', 'carteGriseZone', 'carteGriseFileName');
+    };
+    
+    if (firebaseReady) {
+        db.ref('vehicules/' + centre).push(vehicule).then(() => {
+            showToast("Succès", "Véhicule enregistré dans la base de données", "success");
+            resetForm();
+        }).catch(err => {
+            showToast("Erreur", "Erreur d'enregistrement: " + err.message, "error");
+        });
+    } else {
+        if (!data[centre]) data[centre] = [];
+        data[centre].push(vehicule);
+        if (saveData(data)) {
+            showToast("Succès", "Véhicule enregistré (mode local)", "success");
+            resetForm();
+        }
     }
 }
 
@@ -1617,12 +1722,13 @@ function loadData() {
         
         // Rows for vehicles
         data[centre].forEach((v, index) => {
+            const vehicleId = (firebaseReady && v._key) ? v._key : String(index);
             totalVeh++;
             if (v.etat === "Mauvais") vehiculesMauvais++;
             
             const row = tbody.insertRow();
             row.dataset.centre = centre;
-            row.dataset.index = index;
+            row.dataset.index = vehicleId;
             row.dataset.searchable = `${centre} ${v.type} ${v.immatriculation} ${v.chassis}`.toLowerCase();
             row.dataset.etat = v.etat;
             
@@ -1645,8 +1751,8 @@ function loadData() {
             if (v.carteGriseImage) {
                 cgCell.innerHTML = `
                     <div class="cg-actions">
-                        <img src="${v.carteGriseImage}" class="cg-thumbnail" onclick="viewCarteGrise('${centre}', ${index})" title="Voir la carte grise">
-                        <button class="btn-download-cg" onclick="downloadCarteGrise('${centre}', ${index})" title="Télécharger">
+                        <img src="${v.carteGriseImage}" class="cg-thumbnail" onclick="viewCarteGrise('${centre}', '${vehicleId}')" title="Voir la carte grise">
+                        <button class="btn-download-cg" onclick="downloadCarteGrise('${centre}', '${vehicleId}')" title="Télécharger">
                             <i class="fas fa-download"></i>
                         </button>
                     </div>`;
@@ -1660,10 +1766,10 @@ function loadData() {
             const actionsCell = row.insertCell(10);
             actionsCell.innerHTML = `
                 <div class="action-btns">
-                    <button class="btn btn-sm btn-primary" onclick="editVehicle('${centre}', ${index})" title="Modifier">
+                    <button class="btn btn-sm btn-primary" onclick="editVehicle('${centre}', '${vehicleId}')" title="Modifier">
                         <i class="fas fa-edit"></i>
                     </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteVehicle('${centre}', ${index})" title="Supprimer">
+                    <button class="btn btn-sm btn-danger" onclick="deleteVehicle('${centre}', '${vehicleId}')" title="Supprimer">
                         <i class="fas fa-trash"></i>
                     </button>
                 </div>
@@ -1729,12 +1835,15 @@ function filterTable() {
 // =====================================================
 // EDIT FUNCTIONS
 // =====================================================
-function editVehicle(centre, index) {
-    const data = getData();
-    const v = data[centre][index];
+function editVehicle(centre, id) {
+    const v = getVehicle(centre, id);
+    if (!v) {
+        showToast("Erreur", "Véhicule non trouvé", "error");
+        return;
+    }
     
     document.getElementById("editCentre").value = centre;
-    document.getElementById("editIndex").value = index;
+    document.getElementById("editIndex").value = id;
     document.getElementById("editType").value = v.type;
     document.getElementById("editImmat").value = v.immatriculation;
     document.getElementById("editChassis").value = v.chassis;
@@ -1769,11 +1878,16 @@ function handleEditSubmit(e) {
     e.preventDefault();
     
     const centre = document.getElementById("editCentre").value;
-    const index = document.getElementById("editIndex").value;
-    const data = getData();
+    const id = document.getElementById("editIndex").value;
+    const vehicle = getVehicle(centre, id);
     
-    data[centre][index] = {
-        ...data[centre][index],
+    if (!vehicle) {
+        showToast("Erreur", "Véhicule non trouvé", "error");
+        return;
+    }
+    
+    const updatedData = {
+        ...vehicle,
         type: document.getElementById("editType").value,
         immatriculation: document.getElementById("editImmat").value.toUpperCase(),
         chassis: document.getElementById("editChassis").value.toUpperCase(),
@@ -1788,23 +1902,38 @@ function handleEditSubmit(e) {
     const editCgInput = document.getElementById("editCarteGrise");
     const editCgCompressed = editCgInput.dataset.compressed;
     if (editCgCompressed) {
-        data[centre][index].carteGriseImage = editCgCompressed;
+        updatedData.carteGriseImage = editCgCompressed;
         editCgInput.dataset.compressed = "";
     }
     
-    if (saveData(data)) {
-        closeModal();
-        loadData();
-        showToast("Modifié", "Véhicule mis à jour avec succès", "success");
+    // Remove internal Firebase key before saving
+    delete updatedData._key;
+    
+    if (firebaseReady) {
+        db.ref('vehicules/' + centre + '/' + id).set(updatedData).then(() => {
+            closeModal();
+            showToast("Modifié", "Véhicule mis à jour avec succès", "success");
+        }).catch(err => {
+            showToast("Erreur", "Erreur de mise à jour: " + err.message, "error");
+        });
+    } else {
+        const data = getData();
+        const idx = parseInt(id);
+        data[centre][idx] = updatedData;
+        if (saveData(data)) {
+            closeModal();
+            loadData();
+            showToast("Modifié", "Véhicule mis à jour avec succès", "success");
+        }
     }
 }
 
 // =====================================================
 // DELETE FUNCTIONS
 // =====================================================
-function deleteVehicle(centre, index) {
+function deleteVehicle(centre, id) {
     document.getElementById("deleteCentre").value = centre;
-    document.getElementById("deleteIndex").value = index;
+    document.getElementById("deleteIndex").value = id;
     document.getElementById("deleteModal").classList.add("active");
 }
 
@@ -1814,20 +1943,25 @@ function closeDeleteModal() {
 
 function confirmDelete() {
     const centre = document.getElementById("deleteCentre").value;
-    const index = document.getElementById("deleteIndex").value;
-    const data = getData();
+    const id = document.getElementById("deleteIndex").value;
     
-    data[centre].splice(index, 1);
-    
-    // Remove centre if empty
-    if (data[centre].length === 0) {
-        delete data[centre];
-    }
-    
-    if (saveData(data)) {
-        closeDeleteModal();
-        loadData();
-        showToast("Supprimé", "Véhicule supprimé avec succès", "success");
+    if (firebaseReady) {
+        db.ref('vehicules/' + centre + '/' + id).remove().then(() => {
+            closeDeleteModal();
+            showToast("Supprimé", "Véhicule supprimé avec succès", "success");
+        }).catch(err => {
+            showToast("Erreur", "Erreur de suppression: " + err.message, "error");
+        });
+    } else {
+        const data = getData();
+        const idx = parseInt(id);
+        data[centre].splice(idx, 1);
+        if (data[centre].length === 0) delete data[centre];
+        if (saveData(data)) {
+            closeDeleteModal();
+            loadData();
+            showToast("Supprimé", "Véhicule supprimé avec succès", "success");
+        }
     }
 }
 

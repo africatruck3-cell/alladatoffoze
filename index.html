@@ -1,2205 +1,1956 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Zone Sanitaire ALLADA-TOFFO-ZE</title>
-<meta name="description" content="Application de gestion du parc automobile de la Zone Sanitaire Allada-Toffo-Zè">
-<meta name="author" content="Zone Sanitaire ATZ">
-
-<!-- Favicon -->
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🚗</text></svg>">
-
-<!-- Google Fonts -->
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-
-<!-- Font Awesome Icons -->
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
-<!-- Libraries -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
-<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf-autotable/3.5.31/jspdf.plugin.autotable.min.js"></script>
-
-<!-- Firebase Realtime Database -->
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-database-compat.js"></script>
-
-<style>
-:root {
-    --primary: #0d3b66;
-    --primary-light: #1a5490;
-    --secondary: #2a9d8f;
-    --secondary-light: #3db8a9;
-    --accent: #e76f51;
-    --warning: #f4a261;
-    --danger: #e63946;
-    --success: #2a9d8f;
-    --bg-light: #f8fafc;
-    --bg-card: #ffffff;
-    --text-primary: #1e293b;
-    --text-secondary: #64748b;
-    --border: #e2e8f0;
-    --shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
-    --shadow-lg: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
-    --radius: 12px;
-    --transition: all 0.3s ease;
-}
-
-* {
-    margin: 0;
-    padding: 0;
-    box-sizing: border-box;
-}
-
-body {
-    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
-    background: linear-gradient(135deg, #f8fafc 0%, #e2e8f0 100%);
-    min-height: 100vh;
-    color: var(--text-primary);
-    line-height: 1.6;
-}
-
-/* Header */
-header {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    color: white;
-    padding: 1rem 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    box-shadow: var(--shadow-lg);
-    position: sticky;
-    top: 0;
-    z-index: 100;
-}
-
-.header-brand {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-}
-
-.header-brand i {
-    font-size: 1.8rem;
-}
-
-.header-brand h1 {
-    font-size: 1.4rem;
-    font-weight: 600;
-}
-
-.header-brand span {
-    font-size: 0.85rem;
-    opacity: 0.9;
-    font-weight: 400;
-}
-
-.header-actions {
-    display: flex;
-    gap: 10px;
-}
-
-/* Container */
-.container {
-    max-width: 1400px;
-    margin: 0 auto;
-    padding: 2rem;
-}
-
-/* Cards */
-.card {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    box-shadow: var(--shadow);
-    padding: 1.5rem;
-    margin-bottom: 1.5rem;
-    border: 1px solid var(--border);
-    transition: var(--transition);
-}
-
-.card:hover {
-    box-shadow: var(--shadow-lg);
-}
-
-.card-header {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--bg-light);
-}
-
-.card-header i {
-    font-size: 1.5rem;
-    color: var(--primary);
-    background: rgba(13, 59, 102, 0.1);
-    padding: 12px;
-    border-radius: 10px;
-}
-
-.card-header h2 {
-    font-size: 1.3rem;
-    font-weight: 600;
-    color: var(--primary);
-}
-
-/* Forms */
-.form-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-    gap: 1.25rem;
-}
-
-.form-group {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-}
-
-.form-group.full-width {
-    grid-column: 1 / -1;
-}
-
-.form-group label {
-    font-size: 0.875rem;
-    font-weight: 500;
-    color: var(--text-secondary);
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
-
-.form-group label i {
-    font-size: 0.8rem;
-    color: var(--primary);
-}
-
-.form-control {
-    padding: 12px 14px;
-    border: 2px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-family: inherit;
-    transition: var(--transition);
-    background: var(--bg-light);
-}
-
-.form-control:focus {
-    outline: none;
-    border-color: var(--primary);
-    background: white;
-    box-shadow: 0 0 0 3px rgba(13, 59, 102, 0.1);
-}
-
-.form-control::placeholder {
-    color: var(--text-secondary);
-    opacity: 0.7;
-}
-
-select.form-control {
-    cursor: pointer;
-}
-
-textarea.form-control {
-    resize: vertical;
-    min-height: 80px;
-}
-
-/* Buttons */
-.btn {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 12px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    font-family: inherit;
-    cursor: pointer;
-    transition: var(--transition);
-    text-decoration: none;
-}
-
-.btn:hover {
-    transform: translateY(-2px);
-}
-
-.btn:active {
-    transform: translateY(0);
-}
-
-.btn-primary {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-    color: white;
-}
-
-.btn-primary:hover {
-    box-shadow: 0 4px 12px rgba(13, 59, 102, 0.4);
-}
-
-.btn-success {
-    background: linear-gradient(135deg, var(--secondary) 0%, var(--secondary-light) 100%);
-    color: white;
-}
-
-.btn-success:hover {
-    box-shadow: 0 4px 12px rgba(42, 157, 143, 0.4);
-}
-
-.btn-danger {
-    background: linear-gradient(135deg, var(--danger) 0%, #ff6b6b 100%);
-    color: white;
-}
-
-.btn-danger:hover {
-    box-shadow: 0 4px 12px rgba(230, 57, 70, 0.4);
-}
-
-.btn-warning {
-    background: linear-gradient(135deg, var(--warning) 0%, #f8b26a 100%);
-    color: white;
-}
-
-.btn-secondary {
-    background: linear-gradient(135deg, #64748b 0%, #94a3b8 100%);
-    color: white;
-}
-
-.btn-outline {
-    background: transparent;
-    border: 2px solid var(--primary);
-    color: var(--primary);
-}
-
-.btn-outline:hover {
-    background: var(--primary);
-    color: white;
-}
-
-.btn-sm {
-    padding: 8px 12px;
-    font-size: 0.85rem;
-}
-
-.btn-icon {
-    padding: 10px;
-    border-radius: 8px;
-}
-
-/* Stats Cards */
-.stats-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1.25rem;
-    margin-bottom: 1.5rem;
-}
-
-.stat-card {
-    background: var(--bg-card);
-    border-radius: var(--radius);
-    padding: 1.5rem;
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    box-shadow: var(--shadow);
-    border: 1px solid var(--border);
-    transition: var(--transition);
-}
-
-.stat-card:hover {
-    transform: translateY(-3px);
-    box-shadow: var(--shadow-lg);
-}
-
-.stat-icon {
-    width: 60px;
-    height: 60px;
-    border-radius: 12px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: 1.5rem;
-}
-
-.stat-icon.blue {
-    background: rgba(13, 59, 102, 0.1);
-    color: var(--primary);
-}
-
-.stat-icon.green {
-    background: rgba(42, 157, 143, 0.1);
-    color: var(--secondary);
-}
-
-.stat-icon.orange {
-    background: rgba(244, 162, 97, 0.1);
-    color: var(--warning);
-}
-
-.stat-icon.red {
-    background: rgba(230, 57, 70, 0.1);
-    color: var(--danger);
-}
-
-.stat-content h3 {
-    font-size: 2rem;
-    font-weight: 700;
-    color: var(--text-primary);
-    line-height: 1;
-}
-
-.stat-content p {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-    margin-top: 4px;
-}
-
-/* Table */
-.table-wrapper {
-    overflow-x: auto;
-    border-radius: var(--radius);
-    border: 1px solid var(--border);
-}
-
-table {
-    width: 100%;
-    border-collapse: collapse;
-    min-width: 900px;
-}
-
-thead {
-    background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
-}
-
-th {
-    color: white;
-    padding: 14px 12px;
-    text-align: left;
-    font-weight: 600;
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    letter-spacing: 0.5px;
-}
-
-td {
-    padding: 12px;
-    border-bottom: 1px solid var(--border);
-    font-size: 0.95rem;
-}
-
-tbody tr {
-    transition: var(--transition);
-}
-
-tbody tr:hover {
-    background: var(--bg-light);
-}
-
-.centre-row {
-    background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%) !important;
-    font-weight: 600;
-}
-
-.centre-row td {
-    padding: 10px 12px;
-    color: var(--primary);
-    border-bottom: 2px solid var(--primary);
-}
-
-/* Action Buttons in Table */
-.action-btns {
-    display: flex;
-    gap: 6px;
-}
-
-.action-btns .btn {
-    padding: 6px 10px;
-    font-size: 0.8rem;
-}
-
-/* Missing Centers Alert */
-.alert {
-    padding: 1.25rem;
-    border-radius: var(--radius);
-    margin-top: 1.5rem;
-}
-
-.alert-warning {
-    background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
-    border: 1px solid var(--warning);
-}
-
-.alert-header {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    margin-bottom: 1rem;
-}
-
-.alert-header i {
-    font-size: 1.3rem;
-    color: var(--warning);
-}
-
-.alert-header h4 {
-    font-size: 1rem;
-    color: var(--text-primary);
-}
-
-.missing-list {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 8px;
-    list-style: none;
-}
-
-.missing-list li {
-    background: white;
-    padding: 8px 12px;
-    border-radius: 6px;
-    font-size: 0.9rem;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
-
-.missing-list li::before {
-    content: "⚠";
-    font-size: 0.8rem;
-}
-
-/* Modal */
-.modal-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.6);
-    backdrop-filter: blur(4px);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    z-index: 1000;
-    opacity: 0;
-    visibility: hidden;
-    transition: var(--transition);
-}
-
-.modal-overlay.active {
-    opacity: 1;
-    visibility: visible;
-}
-
-.modal {
-    background: white;
-    border-radius: var(--radius);
-    padding: 2rem;
-    max-width: 500px;
-    width: 90%;
-    max-height: 90vh;
-    overflow-y: auto;
-    transform: scale(0.9);
-    transition: var(--transition);
-}
-
-.modal-overlay.active .modal {
-    transform: scale(1);
-}
-
-.modal-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1.5rem;
-    padding-bottom: 1rem;
-    border-bottom: 2px solid var(--bg-light);
-}
-
-.modal-header h3 {
-    font-size: 1.25rem;
-    color: var(--primary);
-    display: flex;
-    align-items: center;
-    gap: 10px;
-}
-
-.modal-close {
-    background: none;
-    border: none;
-    font-size: 1.5rem;
-    cursor: pointer;
-    color: var(--text-secondary);
-    transition: var(--transition);
-}
-
-.modal-close:hover {
-    color: var(--danger);
-}
-
-.modal-footer {
-    display: flex;
-    gap: 10px;
-    justify-content: flex-end;
-    margin-top: 1.5rem;
-    padding-top: 1rem;
-    border-top: 2px solid var(--bg-light);
-}
-
-/* Toast Notifications */
-.toast-container {
-    position: fixed;
-    top: 20px;
-    right: 20px;
-    z-index: 2000;
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-}
-
-.toast {
-    background: white;
-    padding: 1rem 1.5rem;
-    border-radius: var(--radius);
-    box-shadow: var(--shadow-lg);
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    min-width: 300px;
-    animation: slideIn 0.3s ease;
-    border-left: 4px solid;
-}
-
-@keyframes slideIn {
-    from {
-        transform: translateX(100%);
-        opacity: 0;
-    }
-    to {
-        transform: translateX(0);
-        opacity: 1;
-    }
-}
-
-.toast.success {
-    border-left-color: var(--success);
-}
-
-.toast.success i {
-    color: var(--success);
-}
-
-.toast.error {
-    border-left-color: var(--danger);
-}
-
-.toast.error i {
-    color: var(--danger);
-}
-
-.toast.warning {
-    border-left-color: var(--warning);
-}
-
-.toast.warning i {
-    color: var(--warning);
-}
-
-.toast i {
-    font-size: 1.2rem;
-}
-
-.toast-content {
-    flex: 1;
-}
-
-.toast-content strong {
-    display: block;
-    margin-bottom: 2px;
-}
-
-.toast-content span {
-    font-size: 0.9rem;
-    color: var(--text-secondary);
-}
-
-/* Badges */
-.badge {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    padding: 4px 10px;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    font-weight: 600;
-}
-
-.badge-success {
-    background: rgba(42, 157, 143, 0.15);
-    color: var(--secondary);
-}
-
-.badge-warning {
-    background: rgba(244, 162, 97, 0.15);
-    color: #c77d32;
-}
-
-.badge-danger {
-    background: rgba(230, 57, 70, 0.15);
-    color: var(--danger);
-}
-
-/* Footer */
-footer {
-    text-align: center;
-    padding: 2rem;
-    color: var(--text-secondary);
-    font-size: 0.9rem;
-}
-
-footer a {
-    color: var(--primary);
-    text-decoration: none;
-}
-
-/* Search & Filter */
-.toolbar {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 1rem;
-    margin-bottom: 1.5rem;
-    align-items: center;
-}
-
-.search-box {
-    flex: 1;
-    min-width: 250px;
-    position: relative;
-}
-
-.search-box i {
-    position: absolute;
-    left: 14px;
-    top: 50%;
-    transform: translateY(-50%);
-    color: var(--text-secondary);
-}
-
-.search-box input {
-    width: 100%;
-    padding: 12px 14px 12px 42px;
-    border: 2px solid var(--border);
-    border-radius: 8px;
-    font-size: 0.95rem;
-    transition: var(--transition);
-}
-
-.search-box input:focus {
-    outline: none;
-    border-color: var(--primary);
-    box-shadow: 0 0 0 3px rgba(13, 59, 102, 0.1);
-}
-
-/* Responsive */
-@media (max-width: 768px) {
-    header {
-        flex-direction: column;
-        gap: 1rem;
-        text-align: center;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Cours Word - Formation Complète avec Tests</title>
     
-    .header-actions {
-        width: 100%;
-        justify-content: center;
-    }
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     
-    .container {
-        padding: 1rem;
-    }
-    
-    .form-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .stats-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .toolbar {
-        flex-direction: column;
-    }
-    
-    .search-box {
-        width: 100%;
-    }
-}
+    <style>
+        :root {
+            --word-blue: #2b579a;
+            --word-blue-light: #3b6db5;
+            --word-blue-dark: #1e3f6f;
+            --primary: #1e3a5f;
+            --secondary: #3498db;
+            --accent: #e74c3c;
+            --warning: #f39c12;
+            --success: #27ae60;
+            --bg-light: #f8f9fa;
+            --bg-dark: #1a1a2e;
+            --text-dark: #2c3e50;
+            --text-light: #7f8c8d;
+            --white: #ffffff;
+            --shadow: 0 4px 15px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 40px rgba(0,0,0,0.15);
+            --radius: 16px;
+            --transition: all 0.3s ease;
+        }
 
-/* Carte Grise Upload */
-.upload-zone {
-    border: 2px dashed var(--border);
-    border-radius: 10px;
-    padding: 20px;
-    text-align: center;
-    cursor: pointer;
-    transition: var(--transition);
-    background: var(--bg-light);
-    position: relative;
-    overflow: hidden;
-}
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html { scroll-behavior: smooth; }
+        
+        body {
+            font-family: 'Inter', -apple-system, sans-serif;
+            background: var(--bg-light);
+            color: var(--text-dark);
+            line-height: 1.7;
+        }
 
-.upload-zone:hover {
-    border-color: var(--primary);
-    background: rgba(13, 59, 102, 0.05);
-}
+        /* Navigation */
+        nav {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: var(--white);
+            box-shadow: var(--shadow);
+            z-index: 1000;
+            padding: 15px 0;
+        }
 
-.upload-zone.has-file {
-    border-color: var(--success);
-    background: rgba(42, 157, 143, 0.05);
-}
+        .nav-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
 
-.upload-zone input[type="file"] {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    opacity: 0;
-    cursor: pointer;
-}
+        .logo {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-weight: 700;
+            font-size: 1.4rem;
+            color: var(--word-blue);
+        }
 
-.upload-zone i {
-    font-size: 2rem;
-    color: var(--text-secondary);
-    margin-bottom: 8px;
-}
+        .logo i { font-size: 2rem; }
 
-.upload-zone.has-file i {
-    color: var(--success);
-}
+        .nav-links {
+            display: flex;
+            gap: 20px;
+            list-style: none;
+            align-items: center;
+        }
 
-.upload-zone p {
-    font-size: 0.85rem;
-    color: var(--text-secondary);
-}
+        .nav-links a {
+            text-decoration: none;
+            color: var(--text-dark);
+            font-weight: 500;
+            transition: var(--transition);
+        }
 
-.upload-zone .file-name {
-    font-weight: 600;
-    color: var(--success);
-    margin-top: 4px;
-}
+        .nav-links a:hover { color: var(--word-blue); }
 
-.upload-preview {
-    margin-top: 10px;
-    max-width: 100%;
-    max-height: 120px;
-    border-radius: 8px;
-    object-fit: contain;
-    display: none;
-}
+        .nav-links button {
+            font-family: inherit;
+        }
 
-.upload-preview.visible {
-    display: block;
-}
+        /* Hamburger */
+        .hamburger {
+            display: none;
+            flex-direction: column;
+            cursor: pointer;
+            gap: 5px;
+            padding: 8px;
+            border-radius: 8px;
+            transition: var(--transition);
+        }
+        .hamburger:hover { background: var(--bg-light); }
+        .hamburger span {
+            width: 24px; height: 2.5px;
+            background: var(--text-dark);
+            border-radius: 2px;
+            transition: var(--transition);
+        }
+        .hamburger.active span:nth-child(1) { transform: rotate(45deg) translate(5px, 5px); }
+        .hamburger.active span:nth-child(2) { opacity: 0; }
+        .hamburger.active span:nth-child(3) { transform: rotate(-45deg) translate(5px, -5px); }
 
-.cg-thumbnail {
-    width: 40px;
-    height: 40px;
-    object-fit: cover;
-    border-radius: 6px;
-    cursor: pointer;
-    border: 2px solid var(--border);
-    transition: var(--transition);
-}
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            padding: 10px 20px;
+            border: none;
+            border-radius: 8px;
+            font-size: 0.95rem;
+            font-weight: 600;
+            font-family: inherit;
+            cursor: pointer;
+            transition: var(--transition);
+        }
 
-.cg-thumbnail:hover {
-    transform: scale(1.1);
-    border-color: var(--primary);
-    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
-}
+        .btn:hover { transform: translateY(-2px); }
 
-.cg-actions {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-}
+        .btn-primary { background: linear-gradient(135deg, var(--word-blue), var(--word-blue-light)); color: white; }
+        .btn-success { background: linear-gradient(135deg, var(--success), #2ecc71); color: white; }
+        .btn-danger { background: linear-gradient(135deg, var(--accent), #c0392b); color: white; }
+        .btn-warning { background: linear-gradient(135deg, var(--warning), #e67e22); color: white; }
+        .btn-secondary { background: linear-gradient(135deg, #95a5a6, #7f8c8d); color: white; }
 
-.btn-download-cg {
-    padding: 6px 8px;
-    font-size: 0.75rem;
-    border-radius: 6px;
-    background: var(--primary);
-    color: white;
-    border: none;
-    cursor: pointer;
-    transition: var(--transition);
-}
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 0 20px;
+        }
 
-.btn-download-cg:hover {
-    background: var(--primary-light);
-    transform: scale(1.05);
-}
+        /* Hero */
+        .hero {
+            background: linear-gradient(135deg, var(--word-blue) 0%, var(--word-blue-dark) 100%);
+            color: var(--white);
+            padding: 140px 20px 100px;
+            text-align: center;
+            position: relative;
+            overflow: hidden;
+        }
 
-/* Image Viewer Modal */
-.image-viewer-overlay {
-    position: fixed;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.85);
-    display: none;
-    align-items: center;
-    justify-content: center;
-    z-index: 2000;
-    flex-direction: column;
-    gap: 15px;
-}
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: -50%; left: -50%;
+            width: 200%; height: 200%;
+            background: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none'%3E%3Cg fill='%23ffffff' fill-opacity='0.05'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E");
+            animation: float 30s linear infinite;
+        }
 
-.image-viewer-overlay.active {
-    display: flex;
-}
+        @keyframes float {
+            from { transform: translate(0, 0); }
+            to { transform: translate(50px, 50px); }
+        }
 
-.image-viewer-overlay img {
-    max-width: 90%;
-    max-height: 75vh;
-    border-radius: 12px;
-    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
-}
+        .hero-content {
+            position: relative;
+            z-index: 1;
+            max-width: 800px;
+            margin: 0 auto;
+        }
 
-.image-viewer-toolbar {
-    display: flex;
-    gap: 10px;
-}
+        .hero h1 { font-size: 3.2rem; font-weight: 800; margin-bottom: 20px; }
+        .hero p { font-size: 1.2rem; opacity: 0.95; margin-bottom: 30px; }
 
-.image-viewer-toolbar button {
-    padding: 10px 20px;
-    border: none;
-    border-radius: 8px;
-    font-size: 0.95rem;
-    font-weight: 600;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    transition: var(--transition);
-}
+        .hero-stats {
+            display: flex;
+            justify-content: center;
+            gap: 50px;
+            margin-top: 40px;
+        }
 
-.image-viewer-toolbar .btn-download {
-    background: var(--success);
-    color: white;
-}
+        .stat-item { text-align: center; }
+        .stat-item h3 { font-size: 2.5rem; font-weight: 800; }
+        .stat-item p { font-size: 1rem; opacity: 0.9; }
 
-.image-viewer-toolbar .btn-download:hover {
-    background: var(--secondary-light);
-}
+        .hero-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 15px;
+            margin-top: 30px;
+            flex-wrap: wrap;
+        }
 
-.image-viewer-toolbar .btn-close-viewer {
-    background: rgba(255,255,255,0.2);
-    color: white;
-}
+        .hero-buttons .btn {
+            padding: 15px 30px;
+            font-size: 1.1rem;
+        }
 
-.image-viewer-toolbar .btn-close-viewer:hover {
-    background: rgba(255,255,255,0.3);
-}
+        /* Cards */
+        .card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            margin-bottom: 30px;
+        }
 
-/* Utilities */
-.hidden {
-    display: none !important;
-}
+        .card-header {
+            background: linear-gradient(135deg, var(--word-blue), var(--word-blue-light));
+            color: white;
+            padding: 20px 25px;
+        }
 
-.text-center {
-    text-align: center;
-}
+        .card-header h3 {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            font-size: 1.3rem;
+        }
 
-.mt-1 { margin-top: 0.5rem; }
-.mt-2 { margin-top: 1rem; }
-.mb-1 { margin-bottom: 0.5rem; }
-.mb-2 { margin-bottom: 1rem; }
+        .card-body { padding: 30px; }
 
-/* Print Styles */
-@media print {
-    header, .btn, .toolbar, .alert {
-        display: none !important;
-    }
-    
-    .card {
-        box-shadow: none;
-        border: 1px solid #ddd;
-    }
-}
-</style>
+        /* Sections */
+        section { padding: 80px 0; }
+
+        .section-header {
+            text-align: center;
+            margin-bottom: 60px;
+        }
+
+        .section-header h2 {
+            font-size: 2.5rem;
+            font-weight: 700;
+            color: var(--primary);
+            margin-bottom: 15px;
+        }
+
+        .section-header p {
+            font-size: 1.1rem;
+            color: var(--text-light);
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Lesson */
+        .lesson {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            margin-bottom: 40px;
+            overflow: hidden;
+        }
+
+        .lesson-header {
+            background: linear-gradient(135deg, var(--word-blue) 0%, var(--word-blue-light) 100%);
+            color: white;
+            padding: 25px 30px;
+            display: flex;
+            align-items: center;
+            gap: 20px;
+        }
+
+        .lesson-icon {
+            width: 60px; height: 60px;
+            background: rgba(255,255,255,0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.5rem;
+            flex-shrink: 0;
+        }
+
+        .lesson-title h3 { font-size: 1.4rem; margin-bottom: 5px; }
+        .lesson-title span { opacity: 0.9; font-size: 0.95rem; }
+
+        .lesson-body { padding: 35px; }
+
+        .lesson-body h4 {
+            color: var(--primary);
+            font-size: 1.2rem;
+            margin: 25px 0 12px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .lesson-body h4:first-child { margin-top: 0; }
+        .lesson-body p { margin-bottom: 12px; }
+
+        /* Lists */
+        .styled-list { list-style: none; margin: 15px 0; }
+
+        .styled-list li {
+            padding: 10px 0;
+            border-bottom: 1px solid #eee;
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+        }
+
+        .styled-list li:last-child { border-bottom: none; }
+        .styled-list li i { color: var(--word-blue); margin-top: 4px; flex-shrink: 0; }
+        .styled-list li strong { color: var(--primary); }
+
+        /* Tables */
+        .formula-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin: 20px 0;
+        }
+
+        .formula-table th, .formula-table td {
+            padding: 12px 15px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+
+        .formula-table th {
+            background: var(--word-blue);
+            color: white;
+            font-weight: 600;
+        }
+
+        .formula-table tr:hover { background: #f0f4ff; }
+
+        .formula-table code {
+            background: #e8f0fe;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-family: 'Consolas', monospace;
+            color: var(--word-blue-dark);
+        }
+
+        /* Info Boxes */
+        .info-box {
+            padding: 18px 22px;
+            border-radius: 10px;
+            margin: 20px 0;
+            display: flex;
+            gap: 15px;
+        }
+
+        .info-box i { font-size: 1.4rem; flex-shrink: 0; margin-top: 2px; }
+
+        .info-box.tip {
+            background: linear-gradient(135deg, #e8f5e9 0%, #c8e6c9 100%);
+            border-left: 4px solid var(--success);
+        }
+        .info-box.tip i { color: var(--success); }
+
+        .info-box.warning {
+            background: linear-gradient(135deg, #fff8e1 0%, #ffecb3 100%);
+            border-left: 4px solid var(--warning);
+        }
+        .info-box.warning i { color: var(--warning); }
+
+        .info-box.important {
+            background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+            border-left: 4px solid var(--secondary);
+        }
+        .info-box.important i { color: var(--secondary); }
+
+        .info-box-content h5 { font-size: 1rem; margin-bottom: 6px; }
+
+        /* Shortcuts */
+        .shortcut-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 12px;
+            margin: 20px 0;
+        }
+
+        .shortcut-item {
+            display: flex;
+            align-items: center;
+            gap: 15px;
+            padding: 12px 15px;
+            background: var(--bg-light);
+            border-radius: 10px;
+            transition: var(--transition);
+        }
+
+        .shortcut-item:hover { background: #e8f0fe; }
+
+        .kbd {
+            display: inline-flex;
+            align-items: center;
+            gap: 5px;
+            background: var(--white);
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            padding: 5px 10px;
+            font-family: 'Consolas', monospace;
+            font-size: 0.85rem;
+            box-shadow: 0 2px 0 #ddd;
+            white-space: nowrap;
+        }
+
+        /* Accordion */
+        .accordion { margin: 20px 0; }
+
+        .accordion-item {
+            background: var(--white);
+            border: 1px solid #eee;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+
+        .accordion-header {
+            padding: 18px;
+            cursor: pointer;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            transition: var(--transition);
+        }
+
+        .accordion-header:hover { background: var(--bg-light); }
+
+        .accordion-header h5 {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            font-size: 1.05rem;
+        }
+
+        .accordion-header i.toggle { transition: var(--transition); }
+        .accordion-item.active .accordion-header i.toggle { transform: rotate(180deg); }
+
+        .accordion-content {
+            max-height: 0;
+            overflow: hidden;
+            transition: max-height 0.3s ease;
+        }
+
+        .accordion-item.active .accordion-content { max-height: 2000px; }
+
+        .accordion-body { padding: 0 18px 18px; }
+
+        /* Form */
+        .form-card { max-width: 600px; margin: 0 auto; }
+
+        .form-group { margin-bottom: 20px; }
+
+        .form-group label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-weight: 600;
+            margin-bottom: 8px;
+            color: var(--text-dark);
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #e0e0e0;
+            border-radius: 8px;
+            font-size: 1rem;
+            font-family: inherit;
+            transition: var(--transition);
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: var(--word-blue);
+            box-shadow: 0 0 0 3px rgba(43, 87, 154, 0.1);
+        }
+
+        /* Quiz */
+        .quiz-container { max-width: 800px; margin: 0 auto; }
+
+        .quiz-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+            padding: 15px 20px;
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+        }
+
+        .quiz-progress {
+            width: 100%;
+            height: 8px;
+            background: #e0e0e0;
+            border-radius: 4px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+
+        .quiz-progress-bar {
+            height: 100%;
+            background: linear-gradient(135deg, var(--word-blue), var(--word-blue-light));
+            border-radius: 4px;
+            transition: width 0.4s ease;
+        }
+
+        .timer { font-size: 1.3rem; font-weight: 700; color: var(--accent); }
+
+        .question-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            padding: 30px;
+            margin-bottom: 20px;
+        }
+
+        .question-card h4 {
+            font-size: 1.2rem;
+            margin-bottom: 20px;
+            color: var(--primary);
+        }
+
+        .question-number {
+            display: inline-block;
+            background: var(--word-blue);
+            color: white;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.85rem;
+            margin-bottom: 15px;
+        }
+
+        .options-list { list-style: none; }
+
+        .options-list li {
+            padding: 15px 20px;
+            border: 2px solid #e0e0e0;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            cursor: pointer;
+            transition: var(--transition);
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .options-list li:hover { border-color: var(--word-blue); background: #f0f4ff; }
+
+        .options-list li.selected {
+            border-color: var(--word-blue);
+            background: linear-gradient(135deg, #e8f0fe, #d6e4fd);
+        }
+
+        .options-list li .option-letter {
+            width: 35px; height: 35px;
+            border-radius: 50%;
+            background: var(--bg-light);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 700;
+            flex-shrink: 0;
+        }
+
+        .options-list li.selected .option-letter {
+            background: var(--word-blue);
+            color: white;
+        }
+
+        .quiz-nav {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 20px;
+        }
+
+        /* Results */
+        .result-card {
+            text-align: center;
+            padding: 50px 30px;
+        }
+
+        .score-circle {
+            width: 180px; height: 180px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            margin: 0 auto 25px;
+            font-size: 3rem;
+            font-weight: 800;
+            color: white;
+        }
+
+        .score-circle.excellent { background: linear-gradient(135deg, #27ae60, #2ecc71); }
+        .score-circle.good { background: linear-gradient(135deg, var(--word-blue), var(--word-blue-light)); }
+        .score-circle.average { background: linear-gradient(135deg, var(--warning), #e67e22); }
+        .score-circle.fail { background: linear-gradient(135deg, var(--accent), #c0392b); }
+
+        /* Admin */
+        .results-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .results-table th {
+            background: var(--word-blue);
+            color: white;
+            padding: 12px;
+            text-align: left;
+            font-size: 0.9rem;
+        }
+
+        .results-table td {
+            padding: 12px;
+            border-bottom: 1px solid #eee;
+        }
+
+        .results-table tr:hover { background: #f0f4ff; }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px;
+            margin-bottom: 25px;
+        }
+
+        .stat-card {
+            background: var(--white);
+            padding: 20px;
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            text-align: center;
+        }
+
+        .stat-card h4 { font-size: 2rem; color: var(--word-blue); }
+        .stat-card p { color: var(--text-light); font-size: 0.9rem; margin-top: 5px; }
+
+        /* Badge */
+        .badge {
+            display: inline-flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 10px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+        }
+
+        .badge-success { background: rgba(39,174,96,0.15); color: var(--success); }
+        .badge-danger { background: rgba(231,76,60,0.15); color: var(--accent); }
+
+        /* Modal */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.6);
+            backdrop-filter: blur(4px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            opacity: 0;
+            visibility: hidden;
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active { opacity: 1; visibility: visible; }
+
+        .modal {
+            background: white;
+            border-radius: var(--radius);
+            padding: 30px;
+            max-width: 450px;
+            width: 90%;
+            transform: scale(0.9);
+            transition: var(--transition);
+        }
+
+        .modal-overlay.active .modal { transform: scale(1); }
+
+        .modal h3 {
+            margin-bottom: 20px;
+            color: var(--primary);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .hidden { display: none !important; }
+
+        /* Chapters Grid */
+        .chapters-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+        }
+
+        .chapter-card {
+            background: var(--white);
+            border-radius: var(--radius);
+            box-shadow: var(--shadow);
+            overflow: hidden;
+            transition: var(--transition);
+            cursor: pointer;
+        }
+
+        .chapter-card:hover {
+            transform: translateY(-8px);
+            box-shadow: var(--shadow-lg);
+        }
+
+        .chapter-header {
+            padding: 20px;
+            background: linear-gradient(135deg, var(--word-blue), var(--word-blue-light));
+            color: white;
+        }
+
+        .chapter-number {
+            display: inline-block;
+            background: rgba(255,255,255,0.2);
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            margin-bottom: 8px;
+        }
+
+        .chapter-header h3 { font-size: 1.2rem; display: flex; align-items: center; gap: 8px; }
+
+        .chapter-content { padding: 20px; }
+        .chapter-content p { color: var(--text-light); margin-bottom: 12px; font-size: 0.95rem; }
+
+        .chapter-topics { list-style: none; }
+
+        .chapter-topics li {
+            padding: 6px 0;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 0.9rem;
+        }
+
+        .chapter-topics i { color: var(--word-blue); }
+
+        /* Footer */
+        footer {
+            background: var(--bg-dark);
+            color: white;
+            padding: 40px 0;
+            text-align: center;
+        }
+
+        footer p { opacity: 0.7; }
+
+        /* Registration */
+        .registration-section { padding-top: 120px; }
+
+        /* Responsive */
+        @media (max-width: 992px) {
+            .hero h1 { font-size: 2.2rem; }
+            .section-header h2 { font-size: 1.8rem; }
+        }
+
+        @media (max-width: 768px) {
+            .hamburger { display: flex; }
+            .nav-links {
+                position: fixed;
+                top: 55px;
+                left: 0; right: 0;
+                background: var(--white);
+                flex-direction: column;
+                padding: 15px 20px;
+                box-shadow: 0 10px 40px rgba(0,0,0,0.15);
+                transform: translateY(-120%);
+                transition: transform 0.3s ease;
+                z-index: 999;
+                gap: 5px;
+            }
+            .nav-links.active { transform: translateY(0); }
+            .nav-links a, .nav-links button {
+                width: 100%;
+                text-align: left;
+                padding: 12px 16px;
+                border-radius: 8px;
+            }
+            .hero { padding: 100px 15px 60px; }
+            .hero h1 { font-size: 1.7rem; }
+            .hero p { font-size: 0.95rem; }
+            .hero-stats { flex-direction: column; gap: 15px; }
+            .hero-buttons .btn { width: 100%; justify-content: center; }
+            .chapters-grid { grid-template-columns: 1fr; }
+            .shortcut-grid { grid-template-columns: 1fr; }
+            .lesson-header { flex-direction: column; text-align: center; }
+            .lesson-body { padding: 18px; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+            .test-categories { grid-template-columns: 1fr; }
+            .quiz-header { flex-direction: column; text-align: center; }
+            .question-card { padding: 18px; }
+            .result-details { flex-direction: column; gap: 15px; }
+            .score-circle { width: 130px; height: 130px; font-size: 2.2rem; }
+            section { padding: 50px 0; }
+            .section-header { margin-bottom: 30px; }
+            .section-header h2 { font-size: 1.5rem; }
+            .container { padding: 0 15px; }
+        }
+
+        @media (max-width: 480px) {
+            .hero h1 { font-size: 1.4rem; }
+            .logo { font-size: 1.1rem; }
+            .logo i { font-size: 1.5rem; }
+            .stats-grid { grid-template-columns: 1fr 1fr; }
+        }
+
+        @media print {
+            nav, .btn, .quiz-box { display: none !important; }
+        }
+    </style>
 </head>
-
 <body>
 
-<!-- Toast Container -->
-<div class="toast-container" id="toastContainer"></div>
+<!-- Navigation -->
+<nav>
+    <div class="nav-container">
+        <div class="logo">
+            <i class="fas fa-file-word"></i>
+            <span>Cours Word</span>
+        </div>
+        <div class="hamburger" onclick="toggleMenu()">
+            <span></span><span></span><span></span>
+        </div>
+        <ul class="nav-links" id="navLinks">
+            <li><a href="#" onclick="showSection('home');closeMenu()">Accueil</a></li>
+            <li><a href="#" onclick="showSection('cours');closeMenu()">Cours</a></li>
+            <li><a href="#" onclick="showSection('registration');closeMenu()">Passer le Test</a></li>
+            <li>
+                <button class="btn btn-primary" onclick="openAdminModal();closeMenu()">
+                    <i class="fas fa-lock"></i> Admin
+                </button>
+            </li>
+        </ul>
+    </div>
+</nav>
 
-<!-- Header -->
-<header>
-    <div class="header-brand">
-        <i class="fas fa-hospital-alt"></i>
-        <div>
-            <h1>Gestion du Parc Automobile</h1>
-            <span>Zone Sanitaire Allada-Toffo-Zè</span>
+<!-- ======= HOME SECTION ======= -->
+<section id="homeSection">
+    <div class="hero">
+        <div class="hero-content">
+            <h1><i class="fas fa-file-word"></i> Maîtrisez Microsoft Word</h1>
+            <p>Formation complète pour apprendre les bases essentielles de Word. Du débutant à l'utilisateur confirmé avec des tests de validation !</p>
+            
+            <div class="hero-stats">
+                <div class="stat-item">
+                    <h3>7</h3>
+                    <p>Chapitres</p>
+                </div>
+                <div class="stat-item">
+                    <h3>75</h3>
+                    <p>Questions</p>
+                </div>
+                <div class="stat-item">
+                    <h3>30+</h3>
+                    <p>Raccourcis</p>
+                </div>
+            </div>
+            
+            <div class="hero-buttons">
+                <button class="btn btn-success" onclick="showSection('cours')" style="background: white; color: var(--word-blue);">
+                    <i class="fas fa-book-open"></i> Voir le Cours
+                </button>
+                <button class="btn" onclick="showSection('registration')" style="background: rgba(255,255,255,0.2); color: white; border: 2px solid white;">
+                    <i class="fas fa-clipboard-check"></i> Passer le Test
+                </button>
+            </div>
         </div>
     </div>
-    <div class="header-actions">
-        <button class="btn btn-outline" onclick="adminLogin()" style="border-color: white; color: white;">
-            <i class="fas fa-lock"></i> Espace Admin
-        </button>
-    </div>
-</header>
+</section>
 
-<div class="container">
-
-    <!-- Form Section -->
-    <div id="formSection" class="card">
-        <div class="card-header">
-            <i class="fas fa-car-side"></i>
-            <h2>Déclaration d'un Véhicule</h2>
+<!-- ======= COURS SECTION ======= -->
+<section id="coursSection" class="hidden">
+    <div class="container" style="padding-top: 100px;">
+        <div class="section-header">
+            <h2><i class="fas fa-book-open"></i> Cours Complet Microsoft Word</h2>
+            <p>Apprenez tout ce qu'il faut savoir sur Word</p>
         </div>
 
-        <form id="vehicleForm">
-            <div class="form-grid">
-                <div class="form-group">
-                    <label><i class="fas fa-hospital"></i> Centre de Santé</label>
-                    <select id="centre" class="form-control" required>
-                        <option value="">-- Sélectionner votre centre --</option>
-                    </select>
+        <!-- Chapitre 1 : Introduction -->
+        <div class="lesson">
+            <div class="lesson-header">
+                <div class="lesson-icon"><i class="fas fa-play-circle"></i></div>
+                <div class="lesson-title">
+                    <h3>Chapitre 1 : Introduction à Word</h3>
+                    <span>Comprendre ce qu'est Word et pourquoi il est essentiel</span>
                 </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-car"></i> Type de Véhicule</label>
-                    <select id="type" class="form-control" required>
-                        <option value="">-- Sélectionner le type --</option>
-                        <option value="Moto">🏍️ Moto</option>
-                        <option value="Voiture">🚗 Voiture</option>
-                        <option value="Ambulance">🚑 Ambulance</option>
-                        <option value="Camion">🚛 Camion</option>
-                        <option value="Autre">📦 Autre</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-id-card"></i> Immatriculation</label>
-                    <input type="text" id="immatriculation" class="form-control" placeholder="Ex: AB 1234 RB" required>
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-barcode"></i> Numéro de Châssis</label>
-                    <input type="text" id="chassis" class="form-control" placeholder="17 caractères" required minlength="5">
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-calendar-alt"></i> Année d'Acquisition</label>
-                    <input type="number" id="annee" class="form-control" placeholder="Ex: 2020" required min="1990" max="2030">
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-tachometer-alt"></i> Kilométrage Actuel</label>
-                    <input type="number" id="km" class="form-control" placeholder="Ex: 50000" required min="0">
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-thermometer-half"></i> État du Véhicule</label>
-                    <select id="etat" class="form-control" required>
-                        <option value="Bon">✅ Bon état</option>
-                        <option value="Moyen">⚠️ État moyen</option>
-                        <option value="Mauvais">❌ Mauvais état</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-gas-pump"></i> Carburant</label>
-                    <select id="carburant" class="form-control" required>
-                        <option value="Essence">⛽ Essence</option>
-                        <option value="Diesel">🛢️ Diesel</option>
-                        <option value="Électrique">⚡ Électrique</option>
-                    </select>
-                </div>
-
-                <div class="form-group">
-                    <label><i class="fas fa-file-alt"></i> Photo Carte Grise</label>
-                    <div class="upload-zone" id="carteGriseZone">
-                        <input type="file" id="carteGrise" accept="image/*" onchange="previewCarteGrise(this, 'carteGrisePreview', 'carteGriseZone')">
-                        <i class="fas fa-cloud-upload-alt"></i>
-                        <p>Cliquez ou glissez l'image ici</p>
-                        <p class="file-name" id="carteGriseFileName"></p>
-                        <img class="upload-preview" id="carteGrisePreview" alt="Aperçu carte grise">
+            </div>
+            <div class="lesson-body">
+                <h4><i class="fas fa-question-circle"></i> Qu'est-ce que Microsoft Word ?</h4>
+                <p>Microsoft Word est un <strong>logiciel de traitement de texte</strong> développé par Microsoft. C'est l'outil le plus utilisé au monde pour créer, modifier et mettre en forme des documents texte.</p>
+                
+                <ul class="styled-list">
+                    <li><i class="fas fa-file-alt"></i> <strong>Créer des documents</strong> - Lettres, rapports, CV, mémoires, courriers officiels</li>
+                    <li><i class="fas fa-print"></i> <strong>Imprimer</strong> - Mise en page professionnelle pour l'impression</li>
+                    <li><i class="fas fa-share-alt"></i> <strong>Partager</strong> - Envoyer par email, convertir en PDF</li>
+                    <li><i class="fas fa-users"></i> <strong>Collaborer</strong> - Travailler à plusieurs sur un même document</li>
+                </ul>
+                
+                <div class="info-box important">
+                    <i class="fas fa-lightbulb"></i>
+                    <div class="info-box-content">
+                        <h5>Le saviez-vous ?</h5>
+                        <p>Word est utilisé par plus d'un milliard de personnes dans le monde. Savoir utiliser Word est une compétence indispensable dans presque tous les métiers.</p>
                     </div>
                 </div>
-
-                <div class="form-group full-width">
-                    <label><i class="fas fa-comment-alt"></i> Observations</label>
-                    <textarea id="obs" class="form-control" placeholder="Informations complémentaires sur le véhicule..."></textarea>
-                </div>
-
-                <div class="form-group full-width">
-                    <button type="submit" class="btn btn-success" style="width: 100%;">
-                        <i class="fas fa-save"></i> Enregistrer le Véhicule
-                    </button>
-                </div>
-            </div>
-        </form>
-    </div>
-
-    <!-- Admin Section -->
-    <div id="adminSection" class="hidden">
-        
-        <!-- Stats -->
-        <div class="stats-grid">
-            <div class="stat-card">
-                <div class="stat-icon blue">
-                    <i class="fas fa-car"></i>
-                </div>
-                <div class="stat-content">
-                    <h3 id="totalVehicules">0</h3>
-                    <p>Total Véhicules</p>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon green">
-                    <i class="fas fa-hospital-user"></i>
-                </div>
-                <div class="stat-content">
-                    <h3 id="totalCentres">0</h3>
-                    <p>Centres ayant soumis</p>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon orange">
-                    <i class="fas fa-clock"></i>
-                </div>
-                <div class="stat-content">
-                    <h3 id="centresRestants">0</h3>
-                    <p>Centres en attente</p>
-                </div>
-            </div>
-            
-            <div class="stat-card">
-                <div class="stat-icon red">
-                    <i class="fas fa-exclamation-triangle"></i>
-                </div>
-                <div class="stat-content">
-                    <h3 id="vehiculesMauvais">0</h3>
-                    <p>Véhicules en mauvais état</p>
-                </div>
-            </div>
-        </div>
-
-        <!-- Data Table Card -->
-        <div class="card">
-            <div class="card-header">
-                <i class="fas fa-table"></i>
-                <h2>Liste des Véhicules Déclarés</h2>
-            </div>
-
-            <!-- Toolbar -->
-            <div class="toolbar">
-                <div class="search-box">
-                    <i class="fas fa-search"></i>
-                    <input type="text" id="searchInput" placeholder="Rechercher par centre, immatriculation..." onkeyup="filterTable()">
-                </div>
                 
-                <select id="filterEtat" class="form-control" style="width: auto;" onchange="filterTable()">
-                    <option value="">Tous les états</option>
-                    <option value="Bon">✅ Bon</option>
-                    <option value="Moyen">⚠️ Moyen</option>
-                    <option value="Mauvais">❌ Mauvais</option>
-                </select>
-
-                <button class="btn btn-success" onclick="exportExcel()">
-                    <i class="fas fa-file-excel"></i> Excel
-                </button>
-                <button class="btn btn-danger" onclick="exportPDF()">
-                    <i class="fas fa-file-pdf"></i> PDF
-                </button>
-                <button class="btn btn-secondary" onclick="logout()">
-                    <i class="fas fa-sign-out-alt"></i> Fermer
-                </button>
-            </div>
-
-            <div class="table-wrapper">
-                <table id="dataTable">
+                <h4><i class="fas fa-briefcase"></i> Que peut-on faire avec Word ?</h4>
+                <ul class="styled-list">
+                    <li><i class="fas fa-envelope"></i> <strong>Courriers officiels</strong> - Lettres administratives, demandes</li>
+                    <li><i class="fas fa-id-badge"></i> <strong>CV et lettres de motivation</strong> - Documents professionnels</li>
+                    <li><i class="fas fa-book"></i> <strong>Rapports et mémoires</strong> - Documents longs structurés</li>
+                    <li><i class="fas fa-table"></i> <strong>Tableaux</strong> - Organiser des données dans un document</li>
+                    <li><i class="fas fa-mail-bulk"></i> <strong>Publipostage</strong> - Générer des courriers personnalisés en masse</li>
+                    <li><i class="fas fa-certificate"></i> <strong>Attestations et certificats</strong> - Documents officiels</li>
+                </ul>
+                
+                <h4><i class="fas fa-save"></i> Formats de fichiers</h4>
+                <table class="formula-table">
                     <thead>
-                        <tr>
-                            <th>Centre</th>
-                            <th>Type</th>
-                            <th>Immatriculation</th>
-                            <th>Châssis</th>
-                            <th>Année</th>
-                            <th>KM</th>
-                            <th>État</th>
-                            <th>Carburant</th>
-                            <th>Carte Grise</th>
-                            <th>Date</th>
-                            <th>Actions</th>
-                        </tr>
+                        <tr><th>Format</th><th>Extension</th><th>Description</th></tr>
                     </thead>
-                    <tbody></tbody>
+                    <tbody>
+                        <tr><td><strong>Document Word</strong></td><td>.docx</td><td>Format standard de Word</td></tr>
+                        <tr><td><strong>Ancien format</strong></td><td>.doc</td><td>Compatible Word 97-2003</td></tr>
+                        <tr><td><strong>PDF</strong></td><td>.pdf</td><td>Pour diffusion (non modifiable)</td></tr>
+                        <tr><td><strong>Modèle</strong></td><td>.dotx</td><td>Modèle réutilisable</td></tr>
+                        <tr><td><strong>Texte brut</strong></td><td>.txt</td><td>Texte sans mise en forme</td></tr>
+                    </tbody>
                 </table>
             </div>
-
-            <!-- Missing Centers Alert -->
-            <div class="alert alert-warning" id="missingAlert">
-                <div class="alert-header">
-                    <i class="fas fa-exclamation-circle"></i>
-                    <h4>Centres n'ayant pas encore déclaré leurs véhicules</h4>
-                </div>
-                <ul class="missing-list" id="missingList"></ul>
-            </div>
         </div>
-    </div>
 
-</div>
-
-<!-- Footer -->
-<footer>
-    <p>© 2025 Zone Sanitaire Allada-Toffo-Zè | Développé avec ❤️ pour la santé publique</p>
-</footer>
-
-<!-- Edit Modal -->
-<div class="modal-overlay" id="editModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3><i class="fas fa-edit"></i> Modifier le Véhicule</h3>
-            <button class="modal-close" onclick="closeModal()">&times;</button>
-        </div>
-        
-        <form id="editForm">
-            <input type="hidden" id="editCentre">
-            <input type="hidden" id="editIndex">
-            
-            <div class="form-group mb-2">
-                <label>Type</label>
-                <select id="editType" class="form-control" required>
-                    <option value="Moto">Moto</option>
-                    <option value="Voiture">Voiture</option>
-                    <option value="Ambulance">Ambulance</option>
-                    <option value="Camion">Camion</option>
-                    <option value="Autre">Autre</option>
-                </select>
-            </div>
-            
-            <div class="form-group mb-2">
-                <label>Immatriculation</label>
-                <input type="text" id="editImmat" class="form-control" required>
-            </div>
-            
-            <div class="form-group mb-2">
-                <label>Châssis</label>
-                <input type="text" id="editChassis" class="form-control" required>
-            </div>
-            
-            <div class="form-group mb-2">
-                <label>Année</label>
-                <input type="number" id="editAnnee" class="form-control" required>
-            </div>
-            
-            <div class="form-group mb-2">
-                <label>Kilométrage</label>
-                <input type="number" id="editKm" class="form-control" required>
-            </div>
-            
-            <div class="form-group mb-2">
-                <label>État</label>
-                <select id="editEtat" class="form-control" required>
-                    <option value="Bon">Bon</option>
-                    <option value="Moyen">Moyen</option>
-                    <option value="Mauvais">Mauvais</option>
-                </select>
-            </div>
-            
-            <div class="form-group mb-2">
-                <label>Carburant</label>
-                <select id="editCarburant" class="form-control" required>
-                    <option value="Essence">Essence</option>
-                    <option value="Diesel">Diesel</option>
-                    <option value="Électrique">Électrique</option>
-                </select>
-            </div>
-
-            <div class="form-group mb-2">
-                <label>Photo Carte Grise</label>
-                <div class="upload-zone" id="editCarteGriseZone">
-                    <input type="file" id="editCarteGrise" accept="image/*" onchange="previewCarteGrise(this, 'editCarteGrisePreview', 'editCarteGriseZone')">
-                    <i class="fas fa-cloud-upload-alt"></i>
-                    <p>Cliquez ou glissez pour changer l'image</p>
-                    <p class="file-name" id="editCarteGriseFileName"></p>
-                    <img class="upload-preview" id="editCarteGrisePreview" alt="Aperçu carte grise">
+        <!-- Chapitre 2 : Interface -->
+        <div class="lesson">
+            <div class="lesson-header" style="background: linear-gradient(135deg, #6366f1, #8b5cf6);">
+                <div class="lesson-icon"><i class="fas fa-desktop"></i></div>
+                <div class="lesson-title">
+                    <h3>Chapitre 2 : L'Interface de Word</h3>
+                    <span>Naviguer dans l'interface comme un professionnel</span>
                 </div>
             </div>
-            
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
-                <button type="submit" class="btn btn-success">
-                    <i class="fas fa-save"></i> Sauvegarder
-                </button>
+            <div class="lesson-body">
+                <h4><i class="fas fa-window-maximize"></i> Les éléments principaux</h4>
+                
+                <div class="accordion">
+                    <div class="accordion-item active">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h5><i class="fas fa-ribbon"></i> Le Ruban (Ribbon)</h5>
+                            <i class="fas fa-chevron-down toggle"></i>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p>Le ruban contient tous les outils organisés par onglets :</p>
+                                <ul class="styled-list">
+                                    <li><i class="fas fa-file"></i> <strong>Fichier</strong> - Nouveau, Ouvrir, Enregistrer, Imprimer, Exporter</li>
+                                    <li><i class="fas fa-home"></i> <strong>Accueil</strong> - Police, Paragraphe, Styles, Presse-papiers</li>
+                                    <li><i class="fas fa-plus-circle"></i> <strong>Insertion</strong> - Tableaux, Images, En-tête/Pied de page, Symboles</li>
+                                    <li><i class="fas fa-drafting-compass"></i> <strong>Création</strong> - Thèmes, Couleurs, Polices du document</li>
+                                    <li><i class="fas fa-ruler-combined"></i> <strong>Mise en page</strong> - Marges, Orientation, Taille, Colonnes</li>
+                                    <li><i class="fas fa-spell-check"></i> <strong>Révision</strong> - Orthographe, Commentaires, Suivi des modifications</li>
+                                    <li><i class="fas fa-eye"></i> <strong>Affichage</strong> - Modes d'affichage, Zoom, Règle</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h5><i class="fas fa-ruler-horizontal"></i> La Règle</h5>
+                            <i class="fas fa-chevron-down toggle"></i>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p>La <strong>règle</strong> en haut et à gauche permet de :</p>
+                                <ul class="styled-list">
+                                    <li><i class="fas fa-indent"></i> <strong>Régler les retraits</strong> - Première ligne, gauche, droite</li>
+                                    <li><i class="fas fa-arrows-alt-h"></i> <strong>Placer les tabulations</strong> - Aligner le texte précisément</li>
+                                    <li><i class="fas fa-columns"></i> <strong>Ajuster les marges</strong> - Glisser les limites</li>
+                                </ul>
+                                <div class="info-box tip">
+                                    <i class="fas fa-lightbulb"></i>
+                                    <div class="info-box-content">
+                                        <h5>Afficher la règle</h5>
+                                        <p>Onglet <strong>Affichage</strong> → Cochez <strong>Règle</strong></p>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="accordion-item">
+                        <div class="accordion-header" onclick="toggleAccordion(this)">
+                            <h5><i class="fas fa-search-plus"></i> La Barre d'état</h5>
+                            <i class="fas fa-chevron-down toggle"></i>
+                        </div>
+                        <div class="accordion-content">
+                            <div class="accordion-body">
+                                <p>La barre d'état en bas de l'écran affiche :</p>
+                                <ul class="styled-list">
+                                    <li><i class="fas fa-file-alt"></i> <strong>Numéro de page</strong> - Page actuelle / Total</li>
+                                    <li><i class="fas fa-font"></i> <strong>Nombre de mots</strong> - Compteur de mots</li>
+                                    <li><i class="fas fa-language"></i> <strong>Langue</strong> - Langue du correcteur</li>
+                                    <li><i class="fas fa-search-plus"></i> <strong>Zoom</strong> - Curseur de zoom</li>
+                                </ul>
+                            </div>
+                        </div>
+                    </div>
+                </div>
             </div>
-        </form>
-    </div>
-</div>
-
-<!-- Delete Confirmation Modal -->
-<div class="modal-overlay" id="deleteModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3><i class="fas fa-trash-alt" style="color: var(--danger);"></i> Confirmer la suppression</h3>
-            <button class="modal-close" onclick="closeDeleteModal()">&times;</button>
         </div>
-        
-        <p>Êtes-vous sûr de vouloir supprimer ce véhicule ? Cette action est irréversible.</p>
-        
-        <input type="hidden" id="deleteCentre">
-        <input type="hidden" id="deleteIndex">
-        
-        <div class="modal-footer">
-            <button type="button" class="btn btn-secondary" onclick="closeDeleteModal()">Annuler</button>
-            <button type="button" class="btn btn-danger" onclick="confirmDelete()">
-                <i class="fas fa-trash"></i> Supprimer
+
+        <!-- Chapitre 3 : Mise en forme du texte -->
+        <div class="lesson">
+            <div class="lesson-header" style="background: linear-gradient(135deg, #f59e0b, #d97706);">
+                <div class="lesson-icon"><i class="fas fa-font"></i></div>
+                <div class="lesson-title">
+                    <h3>Chapitre 3 : Mise en Forme du Texte</h3>
+                    <span>Rendez vos documents professionnels et lisibles</span>
+                </div>
+            </div>
+            <div class="lesson-body">
+                <h4><i class="fas fa-text-height"></i> Police de caractères</h4>
+                <ul class="styled-list">
+                    <li><i class="fas fa-font"></i> <strong>Police (Font)</strong> - Calibri, Times New Roman, Arial (onglet Accueil)</li>
+                    <li><i class="fas fa-text-height"></i> <strong>Taille</strong> - 11pt par défaut, 12pt recommandé pour les documents</li>
+                    <li><i class="fas fa-bold"></i> <strong>Gras</strong> - <span class="kbd">Ctrl</span><span class="kbd">B</span></li>
+                    <li><i class="fas fa-italic"></i> <strong>Italique</strong> - <span class="kbd">Ctrl</span><span class="kbd">I</span></li>
+                    <li><i class="fas fa-underline"></i> <strong>Souligné</strong> - <span class="kbd">Ctrl</span><span class="kbd">U</span></li>
+                    <li><i class="fas fa-palette"></i> <strong>Couleur du texte</strong> - Bouton A souligné de couleur</li>
+                    <li><i class="fas fa-highlighter"></i> <strong>Surbrillance</strong> - Surligner du texte important</li>
+                </ul>
+                
+                <h4><i class="fas fa-align-left"></i> Alignement du texte</h4>
+                <div class="shortcut-grid">
+                    <div class="shortcut-item">
+                        <span class="kbd">Ctrl</span><span class="kbd">L</span>
+                        <span>Aligner à gauche</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="kbd">Ctrl</span><span class="kbd">E</span>
+                        <span>Centrer</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="kbd">Ctrl</span><span class="kbd">R</span>
+                        <span>Aligner à droite</span>
+                    </div>
+                    <div class="shortcut-item">
+                        <span class="kbd">Ctrl</span><span class="kbd">J</span>
+                        <span>Justifier</span>
+                    </div>
+                </div>
+                
+                <h4><i class="fas fa-paragraph"></i> Interligne et espacement</h4>
+                <ul class="styled-list">
+                    <li><i class="fas fa-arrows-alt-v"></i> <strong>Interligne</strong> - 1.0, 1.15, 1.5, 2.0 (Accueil → Interligne)</li>
+                    <li><i class="fas fa-arrow-down"></i> <strong>Espacement avant</strong> - Espace au-dessus du paragraphe</li>
+                    <li><i class="fas fa-arrow-up"></i> <strong>Espacement après</strong> - Espace en-dessous du paragraphe</li>
+                </ul>
+                
+                <h4><i class="fas fa-list"></i> Puces et numérotation</h4>
+                <ul class="styled-list">
+                    <li><i class="fas fa-list-ul"></i> <strong>Liste à puces</strong> - Accueil → Puces (•, ◦, ▪...)</li>
+                    <li><i class="fas fa-list-ol"></i> <strong>Liste numérotée</strong> - Accueil → Numérotation (1, 2, 3 / a, b, c)</li>
+                    <li><i class="fas fa-list"></i> <strong>Liste multiniveaux</strong> - Pour les plans et sous-parties</li>
+                </ul>
+                
+                <div class="info-box tip">
+                    <i class="fas fa-lightbulb"></i>
+                    <div class="info-box-content">
+                        <h5>Reproduire la mise en forme</h5>
+                        <p>Sélectionnez du texte déjà mis en forme → Cliquez sur <strong>Pinceau (Format Painter)</strong> → Sélectionnez le texte cible. Double-cliquez sur le pinceau pour l'appliquer plusieurs fois.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapitre 4 : Mise en page -->
+        <div class="lesson">
+            <div class="lesson-header" style="background: linear-gradient(135deg, #ec4899, #be185d);">
+                <div class="lesson-icon"><i class="fas fa-file-contract"></i></div>
+                <div class="lesson-title">
+                    <h3>Chapitre 4 : Mise en Page</h3>
+                    <span>Configurer la page pour l'impression et la présentation</span>
+                </div>
+            </div>
+            <div class="lesson-body">
+                <h4><i class="fas fa-ruler-combined"></i> Marges</h4>
+                <p>Les marges définissent l'espace entre le texte et les bords de la page :</p>
+                <ul class="styled-list">
+                    <li><i class="fas fa-arrows-alt"></i> <strong>Normales</strong> - 2,5 cm partout (par défaut)</li>
+                    <li><i class="fas fa-compress-alt"></i> <strong>Étroites</strong> - 1,27 cm partout (plus de texte)</li>
+                    <li><i class="fas fa-expand-alt"></i> <strong>Larges</strong> - 2,54 cm (gauche/droite), plus d'espace</li>
+                    <li><i class="fas fa-cog"></i> <strong>Personnalisées</strong> - Mise en page → Marges → Marges personnalisées</li>
+                </ul>
+                
+                <h4><i class="fas fa-mobile-alt"></i> Orientation</h4>
+                <ul class="styled-list">
+                    <li><i class="fas fa-arrows-alt-v"></i> <strong>Portrait</strong> - Vertical (par défaut), pour les lettres et rapports</li>
+                    <li><i class="fas fa-arrows-alt-h"></i> <strong>Paysage</strong> - Horizontal, pour les tableaux larges et certificats</li>
+                </ul>
+                
+                <h4><i class="fas fa-file-alt"></i> Taille de papier</h4>
+                <table class="formula-table">
+                    <thead>
+                        <tr><th>Format</th><th>Dimensions</th><th>Utilisation</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>A4</strong></td><td>21 × 29,7 cm</td><td>Standard (le plus courant)</td></tr>
+                        <tr><td><strong>Letter</strong></td><td>21,6 × 27,9 cm</td><td>Standard américain</td></tr>
+                        <tr><td><strong>A3</strong></td><td>29,7 × 42 cm</td><td>Affiches, grands tableaux</td></tr>
+                        <tr><td><strong>A5</strong></td><td>14,8 × 21 cm</td><td>Livrets, carnets</td></tr>
+                    </tbody>
+                </table>
+                
+                <h4><i class="fas fa-heading"></i> En-tête et pied de page</h4>
+                <ul class="styled-list">
+                    <li><i class="fas fa-arrow-up"></i> <strong>En-tête</strong> - Apparaît en haut de chaque page (logo, titre)</li>
+                    <li><i class="fas fa-arrow-down"></i> <strong>Pied de page</strong> - Apparaît en bas de chaque page (numéro de page, date)</li>
+                    <li><i class="fas fa-hash"></i> <strong>Numéros de page</strong> - Insertion → Numéro de page</li>
+                </ul>
+                
+                <div class="info-box warning">
+                    <i class="fas fa-exclamation-triangle"></i>
+                    <div class="info-box-content">
+                        <h5>Saut de page</h5>
+                        <p>N'appuyez jamais plusieurs fois sur <strong>Entrée</strong> pour aller à la page suivante ! Utilisez <span class="kbd">Ctrl</span><span class="kbd">Entrée</span> pour un saut de page propre.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Chapitre 5 : Tableaux et images -->
+        <div class="lesson">
+            <div class="lesson-header" style="background: linear-gradient(135deg, #14b8a6, #0d9488);">
+                <div class="lesson-icon"><i class="fas fa-table"></i></div>
+                <div class="lesson-title">
+                    <h3>Chapitre 5 : Tableaux, Images et Objets</h3>
+                    <span>Enrichir vos documents avec des éléments visuels</span>
+                </div>
+            </div>
+            <div class="lesson-body">
+                <h4><i class="fas fa-table"></i> Créer un tableau</h4>
+                <ol class="styled-list">
+                    <li><i class="fas fa-mouse-pointer"></i> Onglet <strong>Insertion</strong> → <strong>Tableau</strong></li>
+                    <li><i class="fas fa-th"></i> <strong>Sélectionnez le nombre</strong> de lignes et colonnes avec la grille</li>
+                    <li><i class="fas fa-keyboard"></i> Ou <strong>Insérer un tableau</strong> pour saisir les dimensions exactes</li>
+                </ol>
+                
+                <h4><i class="fas fa-edit"></i> Modifier un tableau</h4>
+                <ul class="styled-list">
+                    <li><i class="fas fa-plus"></i> <strong>Ajouter ligne/colonne</strong> - Clic droit → Insérer</li>
+                    <li><i class="fas fa-minus"></i> <strong>Supprimer</strong> - Clic droit → Supprimer</li>
+                    <li><i class="fas fa-object-group"></i> <strong>Fusionner des cellules</strong> - Sélectionnez → Disposition → Fusionner</li>
+                    <li><i class="fas fa-border-all"></i> <strong>Bordures</strong> - Création du tableau → Bordures</li>
+                    <li><i class="fas fa-paint-bucket"></i> <strong>Trame de fond</strong> - Colorer les cellules</li>
+                </ul>
+                
+                <h4><i class="fas fa-image"></i> Insérer des images</h4>
+                <ul class="styled-list">
+                    <li><i class="fas fa-folder-open"></i> <strong>Image depuis fichier</strong> - Insertion → Images → Cet appareil</li>
+                    <li><i class="fas fa-globe"></i> <strong>Image en ligne</strong> - Insertion → Images en ligne</li>
+                    <li><i class="fas fa-shapes"></i> <strong>Formes</strong> - Insertion → Formes (rectangles, flèches, etc.)</li>
+                    <li><i class="fas fa-camera"></i> <strong>Capture d'écran</strong> - Insertion → Capture d'écran</li>
+                </ul>
+                
+                <h4><i class="fas fa-text-width"></i> Habillage du texte (images)</h4>
+                <table class="formula-table">
+                    <thead>
+                        <tr><th>Mode</th><th>Comportement</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Aligné sur le texte</strong></td><td>L'image est traitée comme un caractère</td></tr>
+                        <tr><td><strong>Carré</strong></td><td>Le texte entoure l'image en carré</td></tr>
+                        <tr><td><strong>Rapproché</strong></td><td>Le texte épouse la forme de l'image</td></tr>
+                        <tr><td><strong>Devant le texte</strong></td><td>L'image flotte au-dessus du texte</td></tr>
+                        <tr><td><strong>Derrière le texte</strong></td><td>L'image est en arrière-plan</td></tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- Chapitre 6 : Styles et Sommaire -->
+        <div class="lesson">
+            <div class="lesson-header" style="background: linear-gradient(135deg, #8b5cf6, #6d28d9);">
+                <div class="lesson-icon"><i class="fas fa-heading"></i></div>
+                <div class="lesson-title">
+                    <h3>Chapitre 6 : Styles, Sommaire et Documents Longs</h3>
+                    <span>Structurer des documents professionnels</span>
+                </div>
+            </div>
+            <div class="lesson-body">
+                <h4><i class="fas fa-paint-roller"></i> Les Styles</h4>
+                <p>Les <strong>styles</strong> sont essentiels pour structurer un document. Ils se trouvent dans l'onglet <strong>Accueil</strong> :</p>
+                <table class="formula-table">
+                    <thead>
+                        <tr><th>Style</th><th>Utilisation</th><th>Raccourci</th></tr>
+                    </thead>
+                    <tbody>
+                        <tr><td><strong>Titre 1</strong></td><td>Titres principaux (chapitres)</td><td><span class="kbd">Ctrl</span><span class="kbd">Alt</span><span class="kbd">1</span></td></tr>
+                        <tr><td><strong>Titre 2</strong></td><td>Sous-titres</td><td><span class="kbd">Ctrl</span><span class="kbd">Alt</span><span class="kbd">2</span></td></tr>
+                        <tr><td><strong>Titre 3</strong></td><td>Sous-sous-titres</td><td><span class="kbd">Ctrl</span><span class="kbd">Alt</span><span class="kbd">3</span></td></tr>
+                        <tr><td><strong>Normal</strong></td><td>Texte courant</td><td></td></tr>
+                    </tbody>
+                </table>
+                
+                <div class="info-box important">
+                    <i class="fas fa-star"></i>
+                    <div class="info-box-content">
+                        <h5>Pourquoi utiliser les styles ?</h5>
+                        <ul>
+                            <li>Générer un <strong>sommaire automatique</strong></li>
+                            <li><strong>Uniformité</strong> du document</li>
+                            <li>Navigation rapide dans le <strong>volet de navigation</strong></li>
+                            <li>Modifier le style = change tout le document d'un coup</li>
+                        </ul>
+                    </div>
+                </div>
+                
+                <h4><i class="fas fa-list-alt"></i> Table des matières (Sommaire)</h4>
+                <ol class="styled-list">
+                    <li><i class="fas fa-heading"></i> Appliquez les styles <strong>Titre 1, Titre 2, Titre 3</strong> à vos titres</li>
+                    <li><i class="fas fa-mouse-pointer"></i> Placez le curseur là où vous voulez le sommaire</li>
+                    <li><i class="fas fa-list-alt"></i> Onglet <strong>Références</strong> → <strong>Table des matières</strong></li>
+                    <li><i class="fas fa-sync-alt"></i> Pour mettre à jour : clic droit sur le sommaire → <strong>Mettre à jour</strong></li>
+                </ol>
+                
+                <h4><i class="fas fa-sticky-note"></i> Notes de bas de page</h4>
+                <ul class="styled-list">
+                    <li><i class="fas fa-superscript"></i> <strong>Note de bas de page</strong> - Références → Insérer une note de bas de page (<span class="kbd">Ctrl</span><span class="kbd">Alt</span><span class="kbd">F</span>)</li>
+                    <li><i class="fas fa-file-alt"></i> <strong>Note de fin</strong> - Références → Insérer une note de fin</li>
+                </ul>
+            </div>
+        </div>
+
+        <!-- Chapitre 7 : Raccourcis -->
+        <div class="lesson">
+            <div class="lesson-header" style="background: linear-gradient(135deg, #ef4444, #dc2626);">
+                <div class="lesson-icon"><i class="fas fa-bolt"></i></div>
+                <div class="lesson-title">
+                    <h3>Chapitre 7 : Raccourcis Clavier Essentiels</h3>
+                    <span>Gagnez en productivité au quotidien</span>
+                </div>
+            </div>
+            <div class="lesson-body">
+                <h4><i class="fas fa-star"></i> Raccourcis généraux</h4>
+                <div class="shortcut-grid">
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">N</span> <span>Nouveau document</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">O</span> <span>Ouvrir</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">S</span> <span>Enregistrer</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">P</span> <span>Imprimer</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">Z</span> <span>Annuler</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">Y</span> <span>Rétablir</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">F</span> <span>Rechercher</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">H</span> <span>Remplacer</span></div>
+                </div>
+                
+                <h4><i class="fas fa-font"></i> Mise en forme</h4>
+                <div class="shortcut-grid">
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">B</span> <span><strong>Gras</strong></span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">I</span> <span><em>Italique</em></span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">U</span> <span><u>Souligné</u></span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">Maj</span><span class="kbd">></span> <span>Agrandir police</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">Maj</span><span class="kbd"><</span> <span>Réduire police</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">D</span> <span>Boîte Police</span></div>
+                </div>
+                
+                <h4><i class="fas fa-align-left"></i> Paragraphe</h4>
+                <div class="shortcut-grid">
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">L</span> <span>Aligner gauche</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">E</span> <span>Centrer</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">R</span> <span>Aligner droite</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">J</span> <span>Justifier</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">Entrée</span> <span>Saut de page</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">A</span> <span>Tout sélectionner</span></div>
+                </div>
+                
+                <h4><i class="fas fa-compass"></i> Navigation</h4>
+                <div class="shortcut-grid">
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">Home</span> <span>Début du document</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">End</span> <span>Fin du document</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">G</span> <span>Atteindre (page, ligne)</span></div>
+                    <div class="shortcut-item"><span class="kbd">F7</span> <span>Vérification orthographe</span></div>
+                    <div class="shortcut-item"><span class="kbd">F12</span> <span>Enregistrer sous</span></div>
+                    <div class="shortcut-item"><span class="kbd">Ctrl</span><span class="kbd">F2</span> <span>Aperçu avant impression</span></div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Bouton vers test -->
+        <div style="text-align: center; padding: 40px 0;">
+            <h3 style="margin-bottom: 20px; color: var(--primary);">Prêt à tester vos connaissances ?</h3>
+            <button class="btn btn-primary" onclick="showSection('registration')" style="padding: 18px 40px; font-size: 1.2rem;">
+                <i class="fas fa-clipboard-check"></i> Passer le Test Word
             </button>
         </div>
     </div>
-</div>
+</section>
 
-<!-- Image Viewer Modal -->
-<div class="image-viewer-overlay" id="imageViewer">
-    <img id="imageViewerImg" src="" alt="Carte Grise">
-    <div class="image-viewer-toolbar">
-        <button class="btn-download" id="imageViewerDownload">
-            <i class="fas fa-download"></i> Télécharger
-        </button>
-        <button class="btn-close-viewer" onclick="closeImageViewer()">
-            <i class="fas fa-times"></i> Fermer
-        </button>
+<!-- ======= REGISTRATION SECTION ======= -->
+<section id="registrationSection" class="registration-section hidden">
+    <div class="container">
+        <div class="card form-card">
+            <div class="card-header">
+                <h3><i class="fas fa-user-plus"></i> Inscription au Test Word</h3>
+            </div>
+            <div class="card-body">
+                <form id="registrationForm" onsubmit="startQuiz(event)">
+                    <div class="form-group">
+                        <label for="userName"><i class="fas fa-user"></i> Nom complet *</label>
+                        <input type="text" id="userName" class="form-control" required placeholder="Ex: Jean Dupont">
+                    </div>
+                    <div class="form-group">
+                        <label for="userOrg"><i class="fas fa-hospital"></i> Centre de Santé (CS) *</label>
+                        <select id="userOrg" class="form-control" required>
+                            <option value="">-- Sélectionner votre CS --</option>
+                            <option value="CS Ahouannonzoun">CS Ahouannonzoun</option>
+                            <option value="CS Soyo">CS Soyo</option>
+                            <option value="CS Lissegazoun">CS Lissegazoun</option>
+                            <option value="CS Attogon">CS Attogon</option>
+                            <option value="CS Togoudo">CS Togoudo</option>
+                            <option value="CS Lon Agonmey">CS Lon Agonmey</option>
+                            <option value="CS Hinvi">CS Hinvi</option>
+                            <option value="CS Ayou">CS Ayou</option>
+                            <option value="CS Aota">CS Aota</option>
+                            <option value="CS Avakpa">CS Avakpa</option>
+                            <option value="CS Topka">CS Topka</option>
+                            <option value="CS Sékou">CS Sékou</option>
+                            <option value="CS Agbanou">CS Agbanou</option>
+                            <option value="CS Allada">CS Allada</option>
+                            <option value="Hôpital de Zone ATZ">Hôpital de Zone ATZ</option>
+                            <option value="Bureau de Zone ATZ">Bureau de Zone ATZ</option>
+                            <option value="CS Djanglanme">CS Djanglanme</option>
+                            <option value="CS Agon">CS Agon</option>
+                            <option value="CS Dame">CS Dame</option>
+                            <option value="CS Kpomè">CS Kpomè</option>
+                            <option value="CS Houègbo">CS Houègbo</option>
+                            <option value="CS Sèhouè">CS Sèhouè</option>
+                            <option value="CS Colli">CS Colli</option>
+                            <option value="CS Sey">CS Sey</option>
+                            <option value="CS Agué">CS Agué</option>
+                            <option value="CS Coussi">CS Coussi</option>
+                            <option value="CS Toffo Centre">CS Toffo Centre</option>
+                            <option value="CS Dawé">CS Dawé</option>
+                            <option value="CS Ahozonnoude">CS Ahozonnoude</option>
+                            <option value="CS Zè">CS Zè</option>
+                            <option value="CS Dodji-Bata">CS Dodji-Bata</option>
+                            <option value="CS Sedjédénou">CS Sedjédénou</option>
+                            <option value="CS Tangbo">CS Tangbo</option>
+                            <option value="CS Djigbé-Agué">CS Djigbé-Agué</option>
+                            <option value="CS Adjan">CS Adjan</option>
+                            <option value="CS Koundokpoé">CS Koundokpoé</option>
+                            <option value="Autre">Autre</option>
+                        </select>
+                    </div>
+                    <div class="form-group">
+                        <label for="testLevel"><i class="fas fa-layer-group"></i> Niveau du test *</label>
+                        <select id="testLevel" class="form-control" required>
+                            <option value="">-- Sélectionner --</option>
+                            <option value="debutant">Débutant (20 questions - 15 min)</option>
+                            <option value="intermediaire">Intermédiaire (25 questions - 20 min)</option>
+                            <option value="avance">Avancé (30 questions - 30 min)</option>
+                        </select>
+                    </div>
+                    <button type="submit" class="btn btn-primary" style="width: 100%; padding: 15px;">
+                        <i class="fas fa-play"></i> Commencer le Test
+                    </button>
+                </form>
+                <p style="text-align: center; margin-top: 20px;">
+                    <a href="#" onclick="showSection('cours')" style="color: var(--text-light);">
+                        <i class="fas fa-arrow-left"></i> Revoir le cours avant le test
+                    </a>
+                </p>
+            </div>
+        </div>
     </div>
-</div>
+</section>
 
-<!-- Admin Login Modal -->
-<div class="modal-overlay" id="loginModal">
-    <div class="modal">
-        <div class="modal-header">
-            <h3><i class="fas fa-shield-alt"></i> Accès Administrateur</h3>
-            <button class="modal-close" onclick="closeLoginModal()">&times;</button>
+<!-- ======= QUIZ SECTION ======= -->
+<section id="quizSection" class="hidden">
+    <div class="container" style="padding-top: 100px;">
+        <div class="quiz-container">
+            <div class="quiz-header">
+                <div>
+                    <span id="questionCounter">Question 1/20</span>
+                </div>
+                <div class="timer">
+                    <i class="fas fa-clock"></i> <span id="timerDisplay">15:00</span>
+                </div>
+            </div>
+            <div class="quiz-progress">
+                <div class="quiz-progress-bar" id="progressBar" style="width: 0%"></div>
+            </div>
+            <div id="questionContainer"></div>
+            <div class="quiz-nav">
+                <button class="btn btn-secondary" id="prevBtn" onclick="prevQuestion()" disabled>
+                    <i class="fas fa-arrow-left"></i> Précédent
+                </button>
+                <button class="btn btn-primary" id="nextBtn" onclick="nextQuestion()">
+                    Suivant <i class="fas fa-arrow-right"></i>
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======= RESULTS SECTION ======= -->
+<section id="resultsSection" class="hidden">
+    <div class="container" style="padding-top: 100px;">
+        <div class="card result-card">
+            <div class="score-circle" id="scoreCircle">
+                <span id="scorePercent">0%</span>
+            </div>
+            <h2 id="resultMessage">Résultat</h2>
+            <p id="resultDetails" style="margin-top:10px; color: var(--text-light);"></p>
+            <div style="margin-top:30px; display:flex; gap:15px; justify-content:center; flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="showSection('registration')">
+                    <i class="fas fa-redo"></i> Recommencer
+                </button>
+                <button class="btn btn-success" onclick="showSection('cours')">
+                    <i class="fas fa-book-open"></i> Revoir le cours
+                </button>
+                <button class="btn btn-secondary" onclick="showSection('home')">
+                    <i class="fas fa-home"></i> Accueil
+                </button>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ======= ADMIN SECTION ======= -->
+<section id="adminSection" class="hidden">
+    <div class="container" style="padding-top: 100px;">
+        <div class="section-header">
+            <h2><i class="fas fa-chart-line"></i> Tableau de Bord Admin - Word</h2>
+            <p>Suivi des résultats des tests Word</p>
         </div>
         
-        <form id="loginForm" onsubmit="checkAdminCode(event)">
-            <div class="form-group mb-2">
-                <label><i class="fas fa-key"></i> Code d'accès</label>
-                <input type="password" id="adminCode" class="form-control" placeholder="Entrez le code admin" required autofocus>
+        <div class="stats-grid">
+            <div class="stat-card">
+                <h4 id="adminTotal">0</h4>
+                <p>Tests passés</p>
             </div>
-            
-            <div class="modal-footer">
-                <button type="button" class="btn btn-secondary" onclick="closeLoginModal()">Annuler</button>
-                <button type="submit" class="btn btn-primary">
-                    <i class="fas fa-sign-in-alt"></i> Connexion
-                </button>
+            <div class="stat-card">
+                <h4 id="adminSuccess">0</h4>
+                <p>Tests réussis (≥50%)</p>
+            </div>
+            <div class="stat-card">
+                <h4 id="adminFailed">0</h4>
+                <p>Tests échoués</p>
+            </div>
+            <div class="stat-card">
+                <h4 id="adminAvgScore">0%</h4>
+                <p>Score moyen</p>
+            </div>
+        </div>
+        
+        <div class="card">
+            <div class="card-header" style="background: var(--primary);">
+                <h3><i class="fas fa-list"></i> Historique des Tests Word</h3>
+            </div>
+            <div class="card-body" style="padding: 0;">
+                <div style="overflow-x: auto;">
+                    <table class="results-table">
+                        <thead>
+                            <tr>
+                                <th>Date</th>
+                                <th>Nom</th>
+                                <th>Centre de Santé</th>
+                                <th>Niveau</th>
+                                <th>Score</th>
+                                <th>Temps</th>
+                                <th>Statut</th>
+                            </tr>
+                        </thead>
+                        <tbody id="resultsTableBody">
+                            <tr>
+                                <td colspan="7" style="text-align: center; padding: 30px;">
+                                    Aucun résultat pour le moment
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        
+        <div style="margin-top: 20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <button class="btn btn-success" onclick="exportResults()">
+                <i class="fas fa-file-excel"></i> Exporter Excel
+            </button>
+            <button class="btn btn-danger" onclick="clearAllResults()">
+                <i class="fas fa-trash"></i> Effacer tout
+            </button>
+            <button class="btn btn-secondary" onclick="showSection('home')">
+                <i class="fas fa-sign-out-alt"></i> Fermer
+            </button>
+        </div>
+    </div>
+</section>
+
+<!-- Admin Login Modal -->
+<div class="modal-overlay" id="adminModal">
+    <div class="modal">
+        <h3><i class="fas fa-shield-alt"></i> Accès Admin - Word</h3>
+        <form onsubmit="checkAdmin(event)">
+            <div class="form-group">
+                <label><i class="fas fa-key"></i> Code d'accès</label>
+                <input type="password" id="adminCode" class="form-control" placeholder="Entrez le code" required>
+            </div>
+            <div style="display:flex; gap:10px; margin-top:15px;">
+                <button type="button" class="btn btn-secondary" onclick="closeAdminModal()">Annuler</button>
+                <button type="submit" class="btn btn-primary"><i class="fas fa-sign-in-alt"></i> Connexion</button>
             </div>
         </form>
     </div>
 </div>
 
+<footer>
+    <div class="container">
+        <p>© 2025 Zone Sanitaire Allada-Toffo-Zè | Cours Microsoft Word</p>
+    </div>
+</footer>
+
 <script>
-// =====================================================
+// =====================================
 // CONFIGURATION
-// =====================================================
+// =====================================
 const CONFIG = {
     ADMIN_CODE: "ATZ2025",
-    STORAGE_KEY: "vehicules_zone_atz",
-    APP_VERSION: "3.0.0"
+    STORAGE_KEY: "word_test_results_atz"
 };
 
-// =====================================================
-// FIREBASE - BASE DE DONNÉES EN LIGNE
-// =====================================================
-// ╔══════════════════════════════════════════════════════╗
-// ║  INSTRUCTIONS DE CONFIGURATION FIREBASE :           ║
-// ║  1. Allez sur https://console.firebase.google.com   ║
-// ║  2. Créez un nouveau projet (ex: "parc-auto-atz")   ║
-// ║  3. Cliquez "Realtime Database" > Créer             ║
-// ║  4. Choisissez le mode "test" pour les règles       ║
-// ║  5. Allez dans Paramètres > Général > Vos applis    ║
-// ║  6. Ajoutez une appli Web (</>)                     ║
-// ║  7. Copiez les valeurs de firebaseConfig ci-dessous ║
-// ╚══════════════════════════════════════════════════════╝
-const FIREBASE_CONFIG = {
-    apiKey: "VOTRE_API_KEY",
-    authDomain: "VOTRE_PROJET.firebaseapp.com",
-    databaseURL: "https://VOTRE_PROJET-default-rtdb.firebaseio.com",
-    projectId: "VOTRE_PROJET",
-    storageBucket: "VOTRE_PROJET.appspot.com",
-    messagingSenderId: "VOTRE_SENDER_ID",
-    appId: "VOTRE_APP_ID"
+// =====================================
+// QUESTIONS DATABASE - WORD
+// =====================================
+const questionsDB = {
+    debutant: [
+        { q: "Que signifie l'extension .docx ?", options: ["Document Excel", "Document Word", "Document PowerPoint", "Document PDF"], correct: 1 },
+        { q: "Quel raccourci permet d'enregistrer un document ?", options: ["Ctrl+E", "Ctrl+S", "Ctrl+G", "Ctrl+P"], correct: 1 },
+        { q: "Quel raccourci met le texte en gras ?", options: ["Ctrl+G", "Ctrl+B", "Ctrl+I", "Ctrl+U"], correct: 1 },
+        { q: "Comment appelle-t-on la barre d'outils en haut de Word ?", options: ["Le menu", "La barre d'état", "Le ruban", "La règle"], correct: 2 },
+        { q: "Quel raccourci permet d'annuler la dernière action ?", options: ["Ctrl+A", "Ctrl+Y", "Ctrl+Z", "Ctrl+X"], correct: 2 },
+        { q: "Quel onglet contient les options de Police et Paragraphe ?", options: ["Insertion", "Accueil", "Mise en page", "Affichage"], correct: 1 },
+        { q: "Quel raccourci permet d'imprimer un document ?", options: ["Ctrl+I", "Ctrl+P", "Ctrl+M", "Ctrl+F"], correct: 1 },
+        { q: "Comment centrer un texte au clavier ?", options: ["Ctrl+L", "Ctrl+R", "Ctrl+E", "Ctrl+J"], correct: 2 },
+        { q: "Quel format de papier est le plus courant ?", options: ["A3", "A4", "A5", "Letter"], correct: 1 },
+        { q: "Où se trouve le compteur de mots ?", options: ["Ruban", "Règle", "Barre d'état", "Barre de titre"], correct: 2 },
+        { q: "Comment sélectionner tout le texte d'un document ?", options: ["Ctrl+T", "Ctrl+S", "Ctrl+A", "Ctrl+Z"], correct: 2 },
+        { q: "Quel raccourci copie du texte ?", options: ["Ctrl+C", "Ctrl+X", "Ctrl+V", "Ctrl+D"], correct: 0 },
+        { q: "Quel raccourci colle du texte ?", options: ["Ctrl+C", "Ctrl+X", "Ctrl+V", "Ctrl+D"], correct: 2 },
+        { q: "Word est un logiciel de...", options: ["Tableur", "Présentation", "Traitement de texte", "Base de données"], correct: 2 },
+        { q: "Quel onglet permet d'insérer un tableau ?", options: ["Accueil", "Insertion", "Mise en page", "Révision"], correct: 1 },
+        { q: "Comment ouvrir un fichier existant ?", options: ["Ctrl+N", "Ctrl+O", "Ctrl+S", "Ctrl+F"], correct: 1 },
+        { q: "Quel raccourci met le texte en italique ?", options: ["Ctrl+B", "Ctrl+I", "Ctrl+U", "Ctrl+K"], correct: 1 },
+        { q: "Qu'est-ce qu'un pied de page ?", options: ["Le titre du document", "Le premier paragraphe", "Une zone en bas de chaque page", "La barre de défilement"], correct: 2 },
+        { q: "Comment créer un nouveau document ?", options: ["Ctrl+N", "Ctrl+O", "Ctrl+S", "Ctrl+W"], correct: 0 },
+        { q: "Quel raccourci souligne le texte ?", options: ["Ctrl+B", "Ctrl+I", "Ctrl+U", "Ctrl+S"], correct: 2 }
+    ],
+    intermediaire: [
+        { q: "Quel raccourci fait un saut de page ?", options: ["Ctrl+Entrée", "Alt+Entrée", "Maj+Entrée", "Ctrl+Espace"], correct: 0 },
+        { q: "Comment justifier un texte ?", options: ["Ctrl+L", "Ctrl+E", "Ctrl+R", "Ctrl+J"], correct: 3 },
+        { q: "Quelle est l'interligne par défaut dans Word ?", options: ["1.0", "1.15", "1.5", "2.0"], correct: 1 },
+        { q: "Comment insérer un numéro de page ?", options: ["Accueil → Numéro", "Insertion → Numéro de page", "Mise en page → Page", "Affichage → Numéro"], correct: 1 },
+        { q: "Qu'est-ce que le Format Painter (Pinceau) ?", options: ["Outil pour dessiner", "Outil pour copier la mise en forme", "Outil pour colorer le fond", "Outil pour insérer des formes"], correct: 1 },
+        { q: "Quel style utiliser pour que le sommaire reconnaisse les titres ?", options: ["Normal", "Titre 1, 2, 3", "Corps de texte", "Liste à puces"], correct: 1 },
+        { q: "Où génère-t-on une table des matières ?", options: ["Accueil", "Insertion", "Références", "Mise en page"], correct: 2 },
+        { q: "Quel raccourci ouvre Enregistrer sous... ?", options: ["Ctrl+S", "F12", "Ctrl+Maj+S", "Alt+S"], correct: 1 },
+        { q: "Qu'est-ce qu'un modèle (.dotx) ?", options: ["Un document protégé", "Un document base réutilisable", "Un document compressé", "Un document temporaire"], correct: 1 },
+        { q: "Comment fusionner des cellules dans un tableau ?", options: ["Format → Fusionner", "Disposition → Fusionner les cellules", "Accueil → Fusionner", "Insertion → Fusionner"], correct: 1 },
+        { q: "Quel mode d'habillage place l'image derrière le texte ?", options: ["Carré", "Rapproché", "Devant le texte", "Derrière le texte"], correct: 3 },
+        { q: "Comment changer l'orientation en paysage ?", options: ["Accueil → Orientation", "Mise en page → Orientation", "Insertion → Orientation", "Affichage → Orientation"], correct: 1 },
+        { q: "Quel raccourci lance la vérification orthographique ?", options: ["F5", "F6", "F7", "F8"], correct: 2 },
+        { q: "Que signifie 'Justifier' un texte ?", options: ["Aligner à gauche", "Centrer", "Aligner des deux côtés", "Aligner à droite"], correct: 2 },
+        { q: "Comment insérer un saut de section ?", options: ["Insertion → Saut", "Mise en page → Sauts de page", "Accueil → Saut", "Affichage → Saut"], correct: 1 },
+        { q: "Qu'est-ce qu'un en-tête dans Word ?", options: ["Le premier mot", "Le titre principal", "Zone en haut de chaque page", "Le nom du fichier"], correct: 2 },
+        { q: "Comment afficher les caractères non imprimables (¶) ?", options: ["Ctrl+Maj+8", "Ctrl+8", "Alt+8", "Ctrl+P"], correct: 0 },
+        { q: "Quel raccourci ouvre la boîte de dialogue Police ?", options: ["Ctrl+F", "Ctrl+D", "Ctrl+P", "Ctrl+B"], correct: 1 },
+        { q: "Comment ajouter une note de bas de page ?", options: ["Ctrl+Alt+F", "Ctrl+F", "Alt+F", "Ctrl+Maj+F"], correct: 0 },
+        { q: "Quelle marge est la plus courante ?", options: ["1 cm", "2 cm", "2,5 cm", "3 cm"], correct: 2 },
+        { q: "Comment insérer une image depuis l'ordinateur ?", options: ["Accueil → Image", "Insertion → Images → Cet appareil", "Mise en page → Image", "Fichier → Image"], correct: 1 },
+        { q: "Quel raccourci va au début du document ?", options: ["Ctrl+Début", "Ctrl+Home", "Ctrl+Haut", "Ctrl+Page Up"], correct: 1 },
+        { q: "Comment mettre en forme une liste à puces ?", options: ["Insertion → Puces", "Accueil → Puces", "Mise en page → Puces", "Format → Puces"], correct: 1 },
+        { q: "Qu'est-ce que le volet de navigation ?", options: ["La barre d'état", "Un panneau pour naviguer dans les titres", "Le ruban", "La règle"], correct: 1 },
+        { q: "Comment protéger un document par mot de passe ?", options: ["Fichier → Protéger le document", "Accueil → Protection", "Révision → Protection", "Mise en page → Protection"], correct: 0 }
+    ],
+    avance: [
+        { q: "Comment créer un publipostage ?", options: ["Accueil → Publipostage", "Insertion → Publipostage", "Onglet Publipostage", "Fichier → Publipostage"], correct: 2 },
+        { q: "Qu'est-ce que le suivi des modifications ?", options: ["Compter les mots", "Enregistrer chaque modification avec auteur", "Suivre le curseur", "Compter les pages"], correct: 1 },
+        { q: "Où active-t-on le suivi des modifications ?", options: ["Accueil", "Insertion", "Révision", "Affichage"], correct: 2 },
+        { q: "Comment supprimer un saut de section ?", options: ["Suppr dans le texte", "Afficher les marques → sélectionner → Suppr", "Mise en page → Supprimer", "Impossible"], correct: 1 },
+        { q: "Qu'est-ce qu'un signet (bookmark) ?", options: ["Une image", "Un marqueur de position dans le document", "Un commentaire", "Un pied de page"], correct: 1 },
+        { q: "Comment insérer un renvoi (cross-reference) ?", options: ["Accueil → Renvoi", "Insertion → Renvoi", "Références → Renvoi", "Mise en page → Renvoi"], correct: 2 },
+        { q: "Qu'est-ce qu'une macro dans Word ?", options: ["Un grand document", "Une série d'actions automatisées", "Un modèle", "Une police spéciale"], correct: 1 },
+        { q: "Comment comparer deux versions d'un document ?", options: ["Fichier → Comparer", "Révision → Comparer", "Affichage → Comparer", "Accueil → Comparer"], correct: 1 },
+        { q: "Comment créer un index dans Word ?", options: ["Accueil → Index", "Insertion → Index", "Références → Marquer → Insérer l'index", "Mise en page → Index"], correct: 2 },
+        { q: "Qu'est-ce qu'un champ dans Word ?", options: ["Une cellule de tableau", "Un code dynamique qui s'actualise", "Un paragraphe", "Une note de bas de page"], correct: 1 },
+        { q: "Comment insérer une table des illustrations ?", options: ["Accueil", "Insertion", "Références → Insérer la table des illustrations", "Mise en page"], correct: 2 },
+        { q: "Quel raccourci met à jour tous les champs ?", options: ["F5", "F9", "F7", "F11"], correct: 1 },
+        { q: "Qu'est-ce que les sections dans Word ?", options: ["Des paragraphes", "Des divisions avec mise en page différente", "Des onglets", "Des colonnes"], correct: 1 },
+        { q: "Comment créer une lettrine ?", options: ["Accueil → Lettrine", "Insertion → Lettrine", "Mise en page → Lettrine", "Format → Lettrine"], correct: 1 },
+        { q: "Comment protéger seulement une partie du document ?", options: ["Impossible", "Révision → Restreindre la modification avec des sections", "Fichier → Protection partielle", "Accueil → Protection"], correct: 1 },
+        { q: "Qu'est-ce que le format RTF ?", options: ["Format d'image", "Rich Text Format - format texte enrichi universel", "Format de compression", "Format de présentation"], correct: 1 },
+        { q: "Comment créer un filigrane (watermark) ?", options: ["Accueil → Filigrane", "Insertion → Filigrane", "Création → Filigrane", "Fichier → Filigrane"], correct: 2 },
+        { q: "Comment mettre du texte en colonnes ?", options: ["Accueil → Colonnes", "Insertion → Colonnes", "Mise en page → Colonnes", "Affichage → Colonnes"], correct: 2 },
+        { q: "Comment insérer une citation/bibliographie ?", options: ["Accueil → Citation", "Insertion → Citation", "Références → Insérer une citation", "Révision → Citation"], correct: 2 },
+        { q: "Qu'est-ce que le mode brouillon ?", options: ["Un affichage simplifié sans mise en page", "Un document temporaire", "Un mode d'impression", "Un mode de correction"], correct: 0 },
+        { q: "Comment lier une zone de texte à une autre ?", options: ["Copier/Coller", "Format → Créer un lien des zones de texte", "Insertion → Lier", "Impossible"], correct: 1 },
+        { q: "Comment numéroter les lignes d'un document ?", options: ["Accueil → Numéros de ligne", "Insertion → Numéros", "Mise en page → Numéros de ligne", "Format → Numéros"], correct: 2 },
+        { q: "Qu'est-ce qu'un document maître ?", options: ["Le original d'un fichier", "Un document qui contient des sous-documents liés", "Le premier document créé", "Un modèle"], correct: 1 },
+        { q: "Comment insérer un objet OLE (ex: tableau Excel) ?", options: ["Copier/Coller", "Insertion → Objet", "Fichier → Importer", "Accueil → Objet"], correct: 1 },
+        { q: "Quel raccourci insère un hyperlien ?", options: ["Ctrl+L", "Ctrl+K", "Ctrl+H", "Ctrl+J"], correct: 1 },
+        { q: "Comment ajouter un commentaire ?", options: ["Révision → Nouveau commentaire", "Accueil → Commentaire", "Insertion → Commentaire", "Ctrl+K"], correct: 0 },
+        { q: "Comment exporter un document Word en PDF ?", options: ["Fichier → Exporter → Créer un PDF", "Ctrl+P → PDF", "Les deux sont corrects", "Impossible dans Word"], correct: 2 },
+        { q: "Qu'est-ce que la tabulation décimale ?", options: ["Aligne les nombres par la virgule", "Crée un retrait", "Centre le texte", "Aligne à gauche"], correct: 0 },
+        { q: "Quel raccourci ouvre le volet de navigation ?", options: ["Ctrl+N", "Ctrl+F", "Ctrl+G", "Ctrl+H"], correct: 1 },
+        { q: "Comment empêcher un paragraphe d'être coupé entre deux pages ?", options: ["Paragraphe → Enchaînements → Lignes solidaires", "Impossible", "Saut de page avant", "Mettre en gras"], correct: 0 }
+    ]
 };
 
-let db = null;
-let firebaseReady = false;
-let cachedData = {};
+// =====================================
+// GLOBAL VARIABLES
+// =====================================
+let currentUser = {};
+let currentLevel = '';
+let currentQuestions = [];
+let currentQuestionIndex = 0;
+let userAnswers = [];
+let timerInterval = null;
+let timeRemaining = 0;
+let startTime = null;
 
-try {
-    if (FIREBASE_CONFIG.apiKey !== "VOTRE_API_KEY") {
-        firebase.initializeApp(FIREBASE_CONFIG);
-        db = firebase.database();
-        firebaseReady = true;
-        console.log("✅ Firebase connecté - Base de données en ligne active");
-    } else {
-        console.warn("⚠️ Firebase non configuré - Mode hors ligne (localStorage)");
-    }
-} catch(e) {
-    console.error("❌ Erreur Firebase:", e);
+// =====================================
+// MOBILE MENU
+// =====================================
+function toggleMenu() {
+    document.querySelector('.hamburger').classList.toggle('active');
+    document.getElementById('navLinks').classList.toggle('active');
 }
 
-// Liste des centres de santé de la zone ATZ
-const centresList = [
-    "CS Ahouannonzoun", "CS Soyo", "CS Lissegazoun", "CS Attogon", 
-    "CS Togoudo", "CS Lon Agonmey", "CS Hinvi", "CS Ayou", 
-    "CS Aota", "CS Avakpa", "CS Topka", "CS Sékou", 
-    "CS Agbanou", "CS Allada", "Hôpital de Zone Allada-Toffo-Zè", 
-    "Bureau de Zone ATZ", "CS Djanglanme", "CS Agon", 
-    "CS Dame", "CS Kpomè", "CS Houègbo", "CS Sèhouè", 
-    "CS Colli", "CS Sey", "CS Agué", "CS Coussi", 
-    "CS Toffo Centre", "CS Dawé", "CS Ahozonnoude", "CS Zè", 
-    "CS Dodji-Bata", "CS Sedjedénou", "CS Tangbo", "CS Djigbé-Agué", 
-    "CS Adjan", "CS Koundokpoé"
-].sort();
-
-// =====================================================
-// INITIALISATION
-// =====================================================
-document.addEventListener('DOMContentLoaded', function() {
-    initCentreSelect();
-    initFormValidation();
-    initEditForm();
-    if (firebaseReady) {
-        setupFirebaseListener();
-    }
-    // Indicateur de connexion
-    const footer = document.querySelector('footer p');
-    if (firebaseReady) {
-        footer.innerHTML += ' | <span style="color: #2a9d8f;">🟢 Base de données en ligne</span>';
-    } else {
-        footer.innerHTML += ' | <span style="color: #f4a261;">🟡 Mode local - <a href="#" style="color: #e76f51;" onclick="alert(\'Configurez Firebase dans le code source (FIREBASE_CONFIG)\'); return false;">Configurer Firebase</a></span>';
-    }
-});
-
-function initCentreSelect() {
-    const centreSelect = document.getElementById("centre");
-    centresList.forEach(c => {
-        const opt = document.createElement("option");
-        opt.value = c;
-        opt.textContent = c;
-        centreSelect.appendChild(opt);
-    });
+function closeMenu() {
+    document.querySelector('.hamburger').classList.remove('active');
+    document.getElementById('navLinks').classList.remove('active');
 }
 
-function initFormValidation() {
-    document.getElementById("vehicleForm").addEventListener("submit", handleFormSubmit);
-}
+window.addEventListener('resize', () => { if (window.innerWidth > 768) closeMenu(); });
 
-function initEditForm() {
-    document.getElementById("editForm").addEventListener("submit", handleEditSubmit);
-}
-
-// =====================================================
-// STORAGE FUNCTIONS
-// =====================================================
-function getData() {
-    if (firebaseReady) {
-        return cachedData;
-    }
-    try {
-        return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || {};
-    } catch (e) {
-        console.error("Erreur de lecture des données:", e);
-        return {};
-    }
-}
-
-function saveData(data) {
-    try {
-        localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(data));
-        return true;
-    } catch (e) {
-        console.error("Erreur de sauvegarde:", e);
-        showToast("Erreur", "Impossible de sauvegarder les données", "error");
-        return false;
-    }
-}
-
-// Helper: trouver un véhicule par centre et identifiant
-function getVehicle(centre, id) {
-    const data = getData();
-    if (!data[centre]) return null;
-    if (firebaseReady) {
-        return data[centre].find(item => item._key === id) || null;
-    }
-    return data[centre][parseInt(id)] || null;
-}
-
-// Firebase: écouter les changements en temps réel
-function setupFirebaseListener() {
-    if (!firebaseReady) return;
+// =====================================
+// NAVIGATION
+// =====================================
+function showSection(section) {
+    document.querySelectorAll('section').forEach(s => s.classList.add('hidden'));
     
-    db.ref('vehicules').on('value', (snapshot) => {
-        const rawData = snapshot.val() || {};
-        cachedData = {};
-        
-        Object.keys(rawData).forEach(centre => {
-            cachedData[centre] = [];
-            const centreData = rawData[centre];
-            if (centreData && typeof centreData === 'object') {
-                Object.keys(centreData).forEach(key => {
-                    const vehicle = { ...centreData[key], _key: key };
-                    cachedData[centre].push(vehicle);
-                });
-            }
-        });
-        
-        // Rafraîchir automatiquement la vue admin si visible
-        if (!document.getElementById("adminSection").classList.contains("hidden")) {
-            loadData();
-        }
-    }, (error) => {
-        console.error("Erreur Firebase:", error);
-        showToast("Erreur", "Problème de connexion à la base de données", "error");
-    });
+    switch(section) {
+        case 'home':
+            document.getElementById('homeSection').classList.remove('hidden');
+            break;
+        case 'cours':
+            document.getElementById('coursSection').classList.remove('hidden');
+            break;
+        case 'registration':
+            document.getElementById('registrationSection').classList.remove('hidden');
+            break;
+        case 'quiz':
+            document.getElementById('quizSection').classList.remove('hidden');
+            break;
+        case 'results':
+            document.getElementById('resultsSection').classList.remove('hidden');
+            break;
+        case 'admin':
+            document.getElementById('adminSection').classList.remove('hidden');
+            loadAdminData();
+            break;
+    }
+    
+    window.scrollTo({ top: 0, behavior: 'smooth' });
 }
 
-// =====================================================
-// TOAST NOTIFICATIONS
-// =====================================================
-function showToast(title, message, type = "success") {
-    const container = document.getElementById("toastContainer");
-    const toast = document.createElement("div");
-    toast.className = `toast ${type}`;
+// =====================================
+// ACCORDION
+// =====================================
+function toggleAccordion(header) {
+    const item = header.parentElement;
+    const isActive = item.classList.contains('active');
+    item.closest('.accordion').querySelectorAll('.accordion-item').forEach(i => i.classList.remove('active'));
+    if (!isActive) item.classList.add('active');
+}
+
+// =====================================
+// ADMIN
+// =====================================
+function openAdminModal() {
+    document.getElementById('adminModal').classList.add('active');
+    document.getElementById('adminCode').focus();
+}
+
+function closeAdminModal() {
+    document.getElementById('adminModal').classList.remove('active');
+    document.getElementById('adminCode').value = '';
+}
+
+function checkAdmin(e) {
+    e.preventDefault();
+    if (document.getElementById('adminCode').value === CONFIG.ADMIN_CODE) {
+        closeAdminModal();
+        showSection('admin');
+    } else {
+        alert('Code incorrect !');
+        document.getElementById('adminCode').value = '';
+    }
+}
+
+// =====================================
+// QUIZ FUNCTIONS
+// =====================================
+function shuffleArray(arr) {
+    for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+    }
+}
+
+function startQuiz(e) {
+    e.preventDefault();
     
-    const icons = {
-        success: "fa-check-circle",
-        error: "fa-times-circle",
-        warning: "fa-exclamation-triangle"
+    currentUser = {
+        name: document.getElementById('userName').value,
+        org: document.getElementById('userOrg').value
     };
     
-    toast.innerHTML = `
-        <i class="fas ${icons[type]}"></i>
-        <div class="toast-content">
-            <strong>${title}</strong>
-            <span>${message}</span>
+    currentLevel = document.getElementById('testLevel').value;
+    currentQuestions = [...questionsDB[currentLevel]];
+    shuffleArray(currentQuestions);
+    
+    const timeMinutes = currentLevel === 'debutant' ? 15 : currentLevel === 'intermediaire' ? 20 : 30;
+    timeRemaining = timeMinutes * 60;
+    
+    currentQuestionIndex = 0;
+    userAnswers = new Array(currentQuestions.length).fill(-1);
+    startTime = new Date();
+    
+    showSection('quiz');
+    displayQuestion();
+    startTimer();
+}
+
+function startTimer() {
+    clearInterval(timerInterval);
+    timerInterval = setInterval(() => {
+        timeRemaining--;
+        const min = Math.floor(timeRemaining / 60);
+        const sec = timeRemaining % 60;
+        document.getElementById('timerDisplay').textContent = `${min}:${sec.toString().padStart(2, '0')}`;
+        
+        if (timeRemaining <= 60) {
+            document.getElementById('timerDisplay').style.color = 'red';
+        }
+        
+        if (timeRemaining <= 0) {
+            clearInterval(timerInterval);
+            submitQuiz();
+        }
+    }, 1000);
+}
+
+function displayQuestion() {
+    const q = currentQuestions[currentQuestionIndex];
+    const total = currentQuestions.length;
+    
+    document.getElementById('questionCounter').textContent = `Question ${currentQuestionIndex + 1}/${total}`;
+    document.getElementById('progressBar').style.width = `${((currentQuestionIndex + 1) / total) * 100}%`;
+    
+    document.getElementById('questionContainer').innerHTML = `
+        <div class="question-card">
+            <span class="question-number">Question ${currentQuestionIndex + 1} sur ${total}</span>
+            <h4>${q.q}</h4>
+            <ul class="options-list">
+                ${q.options.map((opt, i) => `
+                    <li class="${userAnswers[currentQuestionIndex] === i ? 'selected' : ''}" onclick="selectOption(${i})">
+                        <span class="option-letter">${String.fromCharCode(65 + i)}</span>
+                        <span>${opt}</span>
+                    </li>
+                `).join('')}
+            </ul>
         </div>
     `;
     
-    container.appendChild(toast);
+    document.getElementById('prevBtn').disabled = currentQuestionIndex === 0;
     
-    setTimeout(() => {
-        toast.style.animation = "slideIn 0.3s ease reverse";
-        setTimeout(() => toast.remove(), 300);
-    }, 4000);
-}
-
-// =====================================================
-// CARTE GRISE IMAGE FUNCTIONS
-// =====================================================
-function previewCarteGrise(input, previewId, zoneId) {
-    const preview = document.getElementById(previewId);
-    const zone = document.getElementById(zoneId);
-    const fileNameEl = zone.querySelector('.file-name');
-    
-    if (input.files && input.files[0]) {
-        const file = input.files[0];
-        
-        // Validate file size (max 2MB)
-        if (file.size > 2 * 1024 * 1024) {
-            showToast("Erreur", "L'image ne doit pas dépasser 2 Mo", "error");
-            input.value = "";
-            return;
-        }
-        
-        // Compress and preview
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            // Compress image
-            const img = new Image();
-            img.onload = function() {
-                const canvas = document.createElement('canvas');
-                const maxWidth = 1200;
-                const maxHeight = 900;
-                let { width, height } = img;
-                
-                if (width > maxWidth || height > maxHeight) {
-                    const ratio = Math.min(maxWidth / width, maxHeight / height);
-                    width *= ratio;
-                    height *= ratio;
-                }
-                
-                canvas.width = width;
-                canvas.height = height;
-                const ctx = canvas.getContext('2d');
-                ctx.drawImage(img, 0, 0, width, height);
-                
-                const compressed = canvas.toDataURL('image/jpeg', 0.7);
-                preview.src = compressed;
-                preview.classList.add("visible");
-                zone.classList.add("has-file");
-                fileNameEl.textContent = file.name;
-                
-                // Store compressed version in a data attribute for retrieval
-                input.dataset.compressed = compressed;
-            };
-            img.src = e.target.result;
-        };
-        reader.readAsDataURL(file);
-    }
-}
-
-function resetUploadZone(previewId, zoneId, fileNameId) {
-    const preview = document.getElementById(previewId);
-    const zone = document.getElementById(zoneId);
-    const fileNameEl = document.getElementById(fileNameId);
-    if (preview) {
-        preview.src = "";
-        preview.classList.remove("visible");
-    }
-    if (zone) zone.classList.remove("has-file");
-    if (fileNameEl) fileNameEl.textContent = "";
-}
-
-function viewCarteGrise(centre, id) {
-    const v = getVehicle(centre, id);
-    if (v && v.carteGriseImage) {
-        const viewer = document.getElementById("imageViewer");
-        const img = document.getElementById("imageViewerImg");
-        img.src = v.carteGriseImage;
-        viewer.classList.add("active");
-        
-        document.getElementById("imageViewerDownload").onclick = function() {
-            downloadCarteGrise(centre, id);
-        };
-    }
-}
-
-function closeImageViewer() {
-    document.getElementById("imageViewer").classList.remove("active");
-}
-
-function downloadCarteGrise(centre, id) {
-    const v = getVehicle(centre, id);
-    if (v && v.carteGriseImage) {
-        const link = document.createElement('a');
-        link.href = v.carteGriseImage;
-        link.download = `carte_grise_${v.immatriculation.replace(/\s+/g, '_')}_${centre.replace(/\s+/g, '_')}.jpg`;
-        document.body.appendChild(link);
-        link.click();
-        document.body.removeChild(link);
-        showToast("Téléchargement", "Carte grise téléchargée", "success");
+    if (currentQuestionIndex === total - 1) {
+        document.getElementById('nextBtn').innerHTML = '<i class="fas fa-check"></i> Terminer';
+        document.getElementById('nextBtn').className = 'btn btn-success';
     } else {
-        showToast("Erreur", "Aucune carte grise disponible", "warning");
+        document.getElementById('nextBtn').innerHTML = 'Suivant <i class="fas fa-arrow-right"></i>';
+        document.getElementById('nextBtn').className = 'btn btn-primary';
     }
 }
 
-// =====================================================
-// FORM HANDLING
-// =====================================================
-function handleFormSubmit(e) {
-    e.preventDefault();
+function selectOption(index) {
+    userAnswers[currentQuestionIndex] = index;
+    displayQuestion();
+}
+
+function nextQuestion() {
+    if (currentQuestionIndex < currentQuestions.length - 1) {
+        currentQuestionIndex++;
+        displayQuestion();
+    } else {
+        submitQuiz();
+    }
+}
+
+function prevQuestion() {
+    if (currentQuestionIndex > 0) {
+        currentQuestionIndex--;
+        displayQuestion();
+    }
+}
+
+function submitQuiz() {
+    clearInterval(timerInterval);
     
-    const centre = document.getElementById("centre").value;
-    const data = getData();
-    const centreVehicles = data[centre] || [];
+    let correct = 0;
+    currentQuestions.forEach((q, i) => {
+        if (userAnswers[i] === q.correct) correct++;
+    });
     
-    const vehicule = {
-        type: document.getElementById("type").value,
-        immatriculation: document.getElementById("immatriculation").value.toUpperCase(),
-        chassis: document.getElementById("chassis").value.toUpperCase(),
-        annee: document.getElementById("annee").value,
-        km: document.getElementById("km").value,
-        etat: document.getElementById("etat").value,
-        carburant: document.getElementById("carburant").value,
-        carteGriseImage: null,
-        observations: document.getElementById("obs").value,
-        date: new Date().toLocaleDateString("fr-FR"),
+    const total = currentQuestions.length;
+    const percentage = Math.round((correct / total) * 100);
+    const endTime = new Date();
+    const timeTaken = Math.round((endTime - startTime) / 1000);
+    
+    const result = {
+        date: new Date().toLocaleString('fr-FR'),
+        name: currentUser.name,
+        org: currentUser.org,
+        level: currentLevel === 'debutant' ? 'Débutant' : currentLevel === 'intermediaire' ? 'Intermédiaire' : 'Avancé',
+        score: percentage,
+        correct: correct,
+        total: total,
+        timeTaken: timeTaken,
         timestamp: Date.now()
     };
     
-    // Vérifier si l'immatriculation existe déjà
-    const exists = centreVehicles.some(v => v.immatriculation === vehicule.immatriculation);
-    if (exists) {
-        showToast("Attention", "Ce véhicule est déjà enregistré", "warning");
+    saveResult(result);
+    displayResults(result);
+}
+
+function displayResults(result) {
+    showSection('results');
+    
+    const scoreCircle = document.getElementById('scoreCircle');
+    scoreCircle.className = 'score-circle';
+    
+    if (result.score >= 80) {
+        scoreCircle.classList.add('excellent');
+        document.getElementById('resultMessage').textContent = '🎉 Excellent ! Vous maîtrisez Word !';
+    } else if (result.score >= 60) {
+        scoreCircle.classList.add('good');
+        document.getElementById('resultMessage').textContent = '👍 Bien ! Vous avez de bonnes bases.';
+    } else if (result.score >= 50) {
+        scoreCircle.classList.add('average');
+        document.getElementById('resultMessage').textContent = '⚠️ Passable. Révisez certains chapitres.';
+    } else {
+        scoreCircle.classList.add('fail');
+        document.getElementById('resultMessage').textContent = '❌ Insuffisant. Reprenez le cours avant de retenter.';
+    }
+    
+    document.getElementById('scorePercent').textContent = result.score + '%';
+    document.getElementById('resultDetails').textContent = `${result.correct} bonnes réponses sur ${result.total} | Temps: ${Math.floor(result.timeTaken / 60)}:${(result.timeTaken % 60).toString().padStart(2, '0')}`;
+}
+
+// =====================================
+// STORAGE
+// =====================================
+function getResults() {
+    try {
+        return JSON.parse(localStorage.getItem(CONFIG.STORAGE_KEY)) || [];
+    } catch (e) {
+        return [];
+    }
+}
+
+function saveResult(result) {
+    const results = getResults();
+    results.push(result);
+    localStorage.setItem(CONFIG.STORAGE_KEY, JSON.stringify(results));
+}
+
+// =====================================
+// ADMIN FUNCTIONS
+// =====================================
+function loadAdminData() {
+    const results = getResults();
+    
+    document.getElementById('adminTotal').textContent = results.length;
+    
+    const successCount = results.filter(r => r.score >= 50).length;
+    document.getElementById('adminSuccess').textContent = successCount;
+    document.getElementById('adminFailed').textContent = results.length - successCount;
+    
+    const avgScore = results.length > 0 ? Math.round(results.reduce((s, r) => s + r.score, 0) / results.length) : 0;
+    document.getElementById('adminAvgScore').textContent = avgScore + '%';
+    
+    const tbody = document.getElementById('resultsTableBody');
+    
+    if (results.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 30px;">Aucun résultat pour le moment</td></tr>';
         return;
     }
     
-    // Handle carte grise image
-    const cgInput = document.getElementById("carteGrise");
-    const cgCompressed = cgInput.dataset.compressed;
-    if (cgCompressed) {
-        vehicule.carteGriseImage = cgCompressed;
-    }
-    
-    const resetForm = () => {
-        e.target.reset();
-        cgInput.dataset.compressed = "";
-        resetUploadZone('carteGrisePreview', 'carteGriseZone', 'carteGriseFileName');
-    };
-    
-    if (firebaseReady) {
-        db.ref('vehicules/' + centre).push(vehicule).then(() => {
-            showToast("Succès", "Véhicule enregistré dans la base de données", "success");
-            resetForm();
-        }).catch(err => {
-            showToast("Erreur", "Erreur d'enregistrement: " + err.message, "error");
-        });
-    } else {
-        if (!data[centre]) data[centre] = [];
-        data[centre].push(vehicule);
-        if (saveData(data)) {
-            showToast("Succès", "Véhicule enregistré (mode local)", "success");
-            resetForm();
-        }
-    }
+    tbody.innerHTML = results.sort((a, b) => b.timestamp - a.timestamp).map(r => `
+        <tr>
+            <td>${r.date}</td>
+            <td><strong>${r.name}</strong></td>
+            <td>${r.org}</td>
+            <td>${r.level}</td>
+            <td><strong>${r.score}%</strong> (${r.correct}/${r.total})</td>
+            <td>${Math.floor(r.timeTaken / 60)}:${(r.timeTaken % 60).toString().padStart(2, '0')}</td>
+            <td><span class="badge ${r.score >= 50 ? 'badge-success' : 'badge-danger'}">${r.score >= 50 ? 'Réussi' : 'Échoué'}</span></td>
+        </tr>
+    `).join('');
 }
 
-// =====================================================
-// ADMIN AUTHENTICATION
-// =====================================================
-function adminLogin() {
-    document.getElementById("loginModal").classList.add("active");
-    document.getElementById("adminCode").focus();
-}
-
-function closeLoginModal() {
-    document.getElementById("loginModal").classList.remove("active");
-    document.getElementById("adminCode").value = "";
-}
-
-function checkAdminCode(e) {
-    e.preventDefault();
-    const code = document.getElementById("adminCode").value;
+function exportResults() {
+    const results = getResults();
+    if (results.length === 0) { alert('Aucun résultat à exporter'); return; }
     
-    if (code === CONFIG.ADMIN_CODE) {
-        closeLoginModal();
-        document.getElementById("formSection").classList.add("hidden");
-        document.getElementById("adminSection").classList.remove("hidden");
-        loadData();
-        showToast("Bienvenue", "Connecté en tant qu'administrateur", "success");
-    } else {
-        showToast("Erreur", "Code d'accès incorrect", "error");
-        document.getElementById("adminCode").value = "";
-    }
-}
-
-function logout() {
-    document.getElementById("adminSection").classList.add("hidden");
-    document.getElementById("formSection").classList.remove("hidden");
-    showToast("Déconnexion", "Session administrateur fermée", "success");
-}
-
-// =====================================================
-// DATA DISPLAY
-// =====================================================
-function loadData() {
-    const data = getData();
-    const tbody = document.querySelector("#dataTable tbody");
-    tbody.innerHTML = "";
-    
-    let totalVeh = 0;
-    let vehiculesMauvais = 0;
-    const centresSoumis = Object.keys(data);
-    
-    centresSoumis.sort().forEach(centre => {
-        // Row for centre name
-        const centreRow = tbody.insertRow();
-        centreRow.classList.add("centre-row");
-        const cell = centreRow.insertCell(0);
-        cell.colSpan = 11;
-        cell.innerHTML = `<i class="fas fa-hospital"></i> ${centre} <span style="font-weight: normal;">(${data[centre].length} véhicule(s))</span>`;
-        
-        // Rows for vehicles
-        data[centre].forEach((v, index) => {
-            const vehicleId = (firebaseReady && v._key) ? v._key : String(index);
-            totalVeh++;
-            if (v.etat === "Mauvais") vehiculesMauvais++;
-            
-            const row = tbody.insertRow();
-            row.dataset.centre = centre;
-            row.dataset.index = vehicleId;
-            row.dataset.searchable = `${centre} ${v.type} ${v.immatriculation} ${v.chassis}`.toLowerCase();
-            row.dataset.etat = v.etat;
-            
-            row.insertCell(0).innerText = "";
-            row.insertCell(1).innerText = v.type;
-            row.insertCell(2).innerHTML = `<strong>${v.immatriculation}</strong>`;
-            row.insertCell(3).innerText = v.chassis;
-            row.insertCell(4).innerText = v.annee;
-            row.insertCell(5).innerText = Number(v.km).toLocaleString() + " km";
-            
-            // État avec badge
-            const etatCell = row.insertCell(6);
-            const badgeClass = v.etat === "Bon" ? "badge-success" : v.etat === "Moyen" ? "badge-warning" : "badge-danger";
-            etatCell.innerHTML = `<span class="badge ${badgeClass}">${v.etat}</span>`;
-            
-            row.insertCell(7).innerText = v.carburant || "N/A";
-            
-            // Carte Grise image
-            const cgCell = row.insertCell(8);
-            if (v.carteGriseImage) {
-                cgCell.innerHTML = `
-                    <div class="cg-actions">
-                        <img src="${v.carteGriseImage}" class="cg-thumbnail" onclick="viewCarteGrise('${centre}', '${vehicleId}')" title="Voir la carte grise">
-                        <button class="btn-download-cg" onclick="downloadCarteGrise('${centre}', '${vehicleId}')" title="Télécharger">
-                            <i class="fas fa-download"></i>
-                        </button>
-                    </div>`;
-            } else {
-                cgCell.innerHTML = `<span class="badge badge-warning">Non fournie</span>`;
-            }
-            
-            row.insertCell(9).innerText = v.date;
-            
-            // Actions
-            const actionsCell = row.insertCell(10);
-            actionsCell.innerHTML = `
-                <div class="action-btns">
-                    <button class="btn btn-sm btn-primary" onclick="editVehicle('${centre}', '${vehicleId}')" title="Modifier">
-                        <i class="fas fa-edit"></i>
-                    </button>
-                    <button class="btn btn-sm btn-danger" onclick="deleteVehicle('${centre}', '${vehicleId}')" title="Supprimer">
-                        <i class="fas fa-trash"></i>
-                    </button>
-                </div>
-            `;
-        });
+    let csv = 'Date,Nom,Centre de Santé,Niveau,Score,Bonnes Réponses,Total,Temps (sec),Statut\n';
+    results.forEach(r => {
+        csv += `"${r.date}","${r.name}","${r.org}","${r.level}",${r.score}%,${r.correct},${r.total},${r.timeTaken},${r.score >= 50 ? 'Réussi' : 'Échoué'}\n`;
     });
     
-    // Update stats
-    document.getElementById("totalVehicules").innerText = totalVeh;
-    document.getElementById("totalCentres").innerText = centresSoumis.length;
-    document.getElementById("vehiculesMauvais").innerText = vehiculesMauvais;
-    
-    // Missing centres
-    const centresRestants = centresList.filter(c => !centresSoumis.includes(c));
-    document.getElementById("centresRestants").innerText = centresRestants.length;
-    
-    const ul = document.getElementById("missingList");
-    ul.innerHTML = "";
-    
-    if (centresRestants.length === 0) {
-        document.getElementById("missingAlert").style.display = "none";
-    } else {
-        document.getElementById("missingAlert").style.display = "block";
-        centresRestants.forEach(c => {
-            const li = document.createElement("li");
-            li.innerText = c;
-            ul.appendChild(li);
-        });
+    const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
+    const link = document.createElement('a');
+    link.href = URL.createObjectURL(blob);
+    link.download = `resultats_word_${new Date().toISOString().split('T')[0]}.csv`;
+    link.click();
+}
+
+function clearAllResults() {
+    if (confirm('Êtes-vous sûr de vouloir effacer tous les résultats Word ? Cette action est irréversible.')) {
+        localStorage.removeItem(CONFIG.STORAGE_KEY);
+        loadAdminData();
+        alert('Tous les résultats ont été effacés.');
     }
 }
 
-// =====================================================
-// SEARCH & FILTER
-// =====================================================
-function filterTable() {
-    const searchValue = document.getElementById("searchInput").value.toLowerCase();
-    const filterEtat = document.getElementById("filterEtat").value;
-    const rows = document.querySelectorAll("#dataTable tbody tr:not(.centre-row)");
-    const centreRows = document.querySelectorAll("#dataTable tbody tr.centre-row");
-    
-    // Track which centres have visible rows
-    const visibleCentres = new Set();
-    
-    rows.forEach(row => {
-        const matchSearch = !searchValue || row.dataset.searchable.includes(searchValue);
-        const matchEtat = !filterEtat || row.dataset.etat === filterEtat;
-        
-        if (matchSearch && matchEtat) {
-            row.style.display = "";
-            visibleCentres.add(row.dataset.centre);
-        } else {
-            row.style.display = "none";
-        }
-    });
-    
-    // Show/hide centre rows based on visible children
-    centreRows.forEach(row => {
-        const centreName = row.cells[0].textContent.split(" (")[0].replace(/^.*? /, '');
-        row.style.display = visibleCentres.has(centreName) || (!searchValue && !filterEtat) ? "" : "none";
-    });
-}
-
-// =====================================================
-// EDIT FUNCTIONS
-// =====================================================
-function editVehicle(centre, id) {
-    const v = getVehicle(centre, id);
-    if (!v) {
-        showToast("Erreur", "Véhicule non trouvé", "error");
-        return;
-    }
-    
-    document.getElementById("editCentre").value = centre;
-    document.getElementById("editIndex").value = id;
-    document.getElementById("editType").value = v.type;
-    document.getElementById("editImmat").value = v.immatriculation;
-    document.getElementById("editChassis").value = v.chassis;
-    document.getElementById("editAnnee").value = v.annee;
-    document.getElementById("editKm").value = v.km;
-    document.getElementById("editEtat").value = v.etat;
-    document.getElementById("editCarburant").value = v.carburant || "Essence";
-    
-    // Handle carte grise preview in edit modal
-    const editPreview = document.getElementById("editCarteGrisePreview");
-    const editZone = document.getElementById("editCarteGriseZone");
-    const editFileName = document.getElementById("editCarteGriseFileName");
-    if (v.carteGriseImage) {
-        editPreview.src = v.carteGriseImage;
-        editPreview.classList.add("visible");
-        editZone.classList.add("has-file");
-        editFileName.textContent = "Image existante";
-    } else {
-        editPreview.classList.remove("visible");
-        editZone.classList.remove("has-file");
-        editFileName.textContent = "";
-    }
-    
-    document.getElementById("editModal").classList.add("active");
-}
-
-function closeModal() {
-    document.getElementById("editModal").classList.remove("active");
-}
-
-function handleEditSubmit(e) {
-    e.preventDefault();
-    
-    const centre = document.getElementById("editCentre").value;
-    const id = document.getElementById("editIndex").value;
-    const vehicle = getVehicle(centre, id);
-    
-    if (!vehicle) {
-        showToast("Erreur", "Véhicule non trouvé", "error");
-        return;
-    }
-    
-    const updatedData = {
-        ...vehicle,
-        type: document.getElementById("editType").value,
-        immatriculation: document.getElementById("editImmat").value.toUpperCase(),
-        chassis: document.getElementById("editChassis").value.toUpperCase(),
-        annee: document.getElementById("editAnnee").value,
-        km: document.getElementById("editKm").value,
-        etat: document.getElementById("editEtat").value,
-        carburant: document.getElementById("editCarburant").value,
-        modifiedAt: new Date().toLocaleDateString("fr-FR")
-    };
-    
-    // Handle carte grise image update
-    const editCgInput = document.getElementById("editCarteGrise");
-    const editCgCompressed = editCgInput.dataset.compressed;
-    if (editCgCompressed) {
-        updatedData.carteGriseImage = editCgCompressed;
-        editCgInput.dataset.compressed = "";
-    }
-    
-    // Remove internal Firebase key before saving
-    delete updatedData._key;
-    
-    if (firebaseReady) {
-        db.ref('vehicules/' + centre + '/' + id).set(updatedData).then(() => {
-            closeModal();
-            showToast("Modifié", "Véhicule mis à jour avec succès", "success");
-        }).catch(err => {
-            showToast("Erreur", "Erreur de mise à jour: " + err.message, "error");
-        });
-    } else {
-        const data = getData();
-        const idx = parseInt(id);
-        data[centre][idx] = updatedData;
-        if (saveData(data)) {
-            closeModal();
-            loadData();
-            showToast("Modifié", "Véhicule mis à jour avec succès", "success");
-        }
-    }
-}
-
-// =====================================================
-// DELETE FUNCTIONS
-// =====================================================
-function deleteVehicle(centre, id) {
-    document.getElementById("deleteCentre").value = centre;
-    document.getElementById("deleteIndex").value = id;
-    document.getElementById("deleteModal").classList.add("active");
-}
-
-function closeDeleteModal() {
-    document.getElementById("deleteModal").classList.remove("active");
-}
-
-function confirmDelete() {
-    const centre = document.getElementById("deleteCentre").value;
-    const id = document.getElementById("deleteIndex").value;
-    
-    if (firebaseReady) {
-        db.ref('vehicules/' + centre + '/' + id).remove().then(() => {
-            closeDeleteModal();
-            showToast("Supprimé", "Véhicule supprimé avec succès", "success");
-        }).catch(err => {
-            showToast("Erreur", "Erreur de suppression: " + err.message, "error");
-        });
-    } else {
-        const data = getData();
-        const idx = parseInt(id);
-        data[centre].splice(idx, 1);
-        if (data[centre].length === 0) delete data[centre];
-        if (saveData(data)) {
-            closeDeleteModal();
-            loadData();
-            showToast("Supprimé", "Véhicule supprimé avec succès", "success");
-        }
-    }
-}
-
-// =====================================================
-// EXPORT FUNCTIONS
-// =====================================================
-function exportExcel() {
-    const data = getData();
-    const rows = [];
-    
-    Object.keys(data).sort().forEach(centre => {
-        data[centre].forEach(v => {
-            rows.push({
-                "Centre de Santé": centre,
-                "Type": v.type,
-                "Immatriculation": v.immatriculation,
-                "N° Châssis": v.chassis,
-                "Année": v.annee,
-                "Kilométrage": v.km,
-                "État": v.etat,
-                "Carburant": v.carburant || "N/A",
-                "Carte Grise": v.carteGriseImage ? "Oui (image jointe)" : "Non fournie",
-                "Observations": v.observations || "",
-                "Date Déclaration": v.date
-            });
-        });
-    });
-    
-    if (rows.length === 0) {
-        showToast("Attention", "Aucune donnée à exporter", "warning");
-        return;
-    }
-    
-    const ws = XLSX.utils.json_to_sheet(rows);
-    const wb = XLSX.utils.book_new();
-    
-    // Set column widths
-    ws['!cols'] = [
-        { wch: 30 }, { wch: 12 }, { wch: 15 }, { wch: 20 },
-        { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 12 },
-        { wch: 18 }, { wch: 30 }, { wch: 15 }
-    ];
-    
-    XLSX.utils.book_append_sheet(wb, ws, "Véhicules");
-    XLSX.writeFile(wb, `rapport_vehicules_ATZ_${new Date().toISOString().split('T')[0]}.xlsx`);
-    
-    showToast("Export", "Fichier Excel généré avec succès", "success");
-}
-
-function exportPDF() {
-    const { jsPDF } = window.jspdf;
-    const doc = new jsPDF('l', 'mm', 'a4'); // Landscape
-    const data = getData();
-    
-    if (Object.keys(data).length === 0) {
-        showToast("Attention", "Aucune donnée à exporter", "warning");
-        return;
-    }
-    
-    // Header
-    doc.setFillColor(13, 59, 102);
-    doc.rect(0, 0, 297, 30, 'F');
-    
-    doc.setTextColor(255, 255, 255);
-    doc.setFontSize(18);
-    doc.setFont(undefined, 'bold');
-    doc.text("RAPPORT OFFICIEL - GESTION DU PARC AUTOMOBILE", 148, 12, { align: 'center' });
-    
-    doc.setFontSize(12);
-    doc.setFont(undefined, 'normal');
-    doc.text("Zone Sanitaire Allada-Toffo-Zè", 148, 20, { align: 'center' });
-    
-    doc.setTextColor(0, 0, 0);
-    doc.setFontSize(10);
-    doc.text(`Date d'édition: ${new Date().toLocaleDateString('fr-FR')}`, 14, 40);
-    
-    // Statistics
-    const totalVehicles = Object.values(data).reduce((sum, arr) => sum + arr.length, 0);
-    const totalCentres = Object.keys(data).length;
-    doc.text(`Total véhicules: ${totalVehicles} | Centres déclarants: ${totalCentres}/${centresList.length}`, 14, 48);
-    
-    let y = 58;
-    
-    // Collect all vehicles with carte grise images for appendix
-    const cartesGrises = [];
-    
-    Object.keys(data).sort().forEach(centre => {
-        // Check if we need a new page
-        if (y > 180) {
-            doc.addPage();
-            y = 20;
-        }
-        
-        doc.setFillColor(224, 242, 254);
-        doc.rect(14, y - 5, 269, 8, 'F');
-        doc.setFontSize(11);
-        doc.setFont(undefined, 'bold');
-        doc.text(`${centre} (${data[centre].length} véhicule(s))`, 16, y);
-        y += 4;
-        
-        // Collect carte grise images
-        data[centre].forEach(v => {
-            if (v.carteGriseImage) {
-                cartesGrises.push({
-                    centre: centre,
-                    immatriculation: v.immatriculation,
-                    type: v.type,
-                    image: v.carteGriseImage
-                });
-            }
-        });
-        
-        doc.autoTable({
-            startY: y,
-            head: [["Type", "Immatriculation", "Châssis", "Année", "KM", "État", "Carburant", "Carte Grise"]],
-            body: data[centre].map(v => [
-                v.type,
-                v.immatriculation,
-                v.chassis,
-                v.annee,
-                Number(v.km).toLocaleString(),
-                v.etat,
-                v.carburant || "N/A",
-                v.carteGriseImage ? "✓ Voir annexe" : "Non fournie"
-            ]),
-            theme: 'striped',
-            headStyles: {
-                fillColor: [13, 59, 102],
-                fontSize: 9
-            },
-            styles: {
-                fontSize: 8,
-                cellPadding: 2
-            },
-            margin: { left: 14, right: 14 }
-        });
-        
-        y = doc.lastAutoTable.finalY + 12;
-    });
-    
-    // =====================================================
-    // ANNEXE : Photos des Cartes Grises
-    // =====================================================
-    if (cartesGrises.length > 0) {
-        doc.addPage();
-        
-        // Annexe header
-        doc.setFillColor(13, 59, 102);
-        doc.rect(0, 0, 297, 25, 'F');
-        doc.setTextColor(255, 255, 255);
-        doc.setFontSize(16);
-        doc.setFont(undefined, 'bold');
-        doc.text("ANNEXE - PHOTOS DES CARTES GRISES", 148, 16, { align: 'center' });
-        
-        let imgY = 35;
-        
-        cartesGrises.forEach((cg, idx) => {
-            // Check if we need a new page (leave room for image + label)
-            if (imgY > 140) {
-                doc.addPage();
-                imgY = 20;
-            }
-            
-            // Vehicle info label
-            doc.setTextColor(13, 59, 102);
-            doc.setFontSize(10);
-            doc.setFont(undefined, 'bold');
-            doc.text(`${idx + 1}. ${cg.type} - ${cg.immatriculation}`, 14, imgY);
-            doc.setFont(undefined, 'normal');
-            doc.setTextColor(100, 100, 100);
-            doc.setFontSize(8);
-            doc.text(`Centre: ${cg.centre}`, 14, imgY + 5);
-            
-            imgY += 9;
-            
-            // Add the carte grise image
-            try {
-                const imgFormat = cg.image.includes('image/png') ? 'PNG' : 'JPEG';
-                const imgWidth = 120;
-                const imgHeight = 75;
-                doc.addImage(cg.image, imgFormat, 14, imgY, imgWidth, imgHeight);
-                
-                // Draw border around image
-                doc.setDrawColor(200, 200, 200);
-                doc.setLineWidth(0.5);
-                doc.rect(14, imgY, imgWidth, imgHeight);
-                
-                imgY += imgHeight + 15;
-            } catch (err) {
-                doc.setTextColor(230, 57, 70);
-                doc.setFontSize(8);
-                doc.text("⚠ Erreur de chargement de l'image", 14, imgY + 10);
-                imgY += 20;
-            }
-        });
-    }
-    
-    // Footer on each page
-    const pageCount = doc.internal.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text(`Page ${i} / ${pageCount}`, 148, 200, { align: 'center' });
-        doc.text("© Zone Sanitaire ATZ - Document généré automatiquement", 148, 205, { align: 'center' });
-    }
-    
-    doc.save(`rapport_vehicules_ATZ_${new Date().toISOString().split('T')[0]}.pdf`);
-    showToast("Export", "Fichier PDF généré avec succès", "success");
-}
-
-// Close modals on escape key
-document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-        closeModal();
-        closeDeleteModal();
-        closeLoginModal();
-        closeImageViewer();
-    }
-});
-
-// Close modals on overlay click
-document.querySelectorAll('.modal-overlay').forEach(overlay => {
-    overlay.addEventListener('click', function(e) {
-        if (e.target === this) {
-            closeModal();
-            closeDeleteModal();
-            closeLoginModal();
-        }
-    });
-});
-
-// Close image viewer on overlay click
-document.getElementById('imageViewer').addEventListener('click', function(e) {
-    if (e.target === this) {
-        closeImageViewer();
-    }
-});
+// Close modal on escape / overlay click
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeAdminModal(); });
+document.getElementById('adminModal').addEventListener('click', function(e) { if (e.target === this) closeAdminModal(); });
 </script>
 
 </body>

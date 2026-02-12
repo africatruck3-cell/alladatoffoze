@@ -736,6 +736,174 @@ footer a {
     }
 }
 
+/* Carte Grise Upload */
+.upload-zone {
+    border: 2px dashed var(--border);
+    border-radius: 10px;
+    padding: 20px;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    background: var(--bg-light);
+    position: relative;
+    overflow: hidden;
+}
+
+.upload-zone:hover {
+    border-color: var(--primary);
+    background: rgba(13, 59, 102, 0.05);
+}
+
+.upload-zone.has-file {
+    border-color: var(--success);
+    background: rgba(42, 157, 143, 0.05);
+}
+
+.upload-zone input[type="file"] {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    opacity: 0;
+    cursor: pointer;
+}
+
+.upload-zone i {
+    font-size: 2rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+
+.upload-zone.has-file i {
+    color: var(--success);
+}
+
+.upload-zone p {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+
+.upload-zone .file-name {
+    font-weight: 600;
+    color: var(--success);
+    margin-top: 4px;
+}
+
+.upload-preview {
+    margin-top: 10px;
+    max-width: 100%;
+    max-height: 120px;
+    border-radius: 8px;
+    object-fit: contain;
+    display: none;
+}
+
+.upload-preview.visible {
+    display: block;
+}
+
+.cg-thumbnail {
+    width: 40px;
+    height: 40px;
+    object-fit: cover;
+    border-radius: 6px;
+    cursor: pointer;
+    border: 2px solid var(--border);
+    transition: var(--transition);
+}
+
+.cg-thumbnail:hover {
+    transform: scale(1.1);
+    border-color: var(--primary);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.2);
+}
+
+.cg-actions {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.btn-download-cg {
+    padding: 6px 8px;
+    font-size: 0.75rem;
+    border-radius: 6px;
+    background: var(--primary);
+    color: white;
+    border: none;
+    cursor: pointer;
+    transition: var(--transition);
+}
+
+.btn-download-cg:hover {
+    background: var(--primary-light);
+    transform: scale(1.05);
+}
+
+/* Image Viewer Modal */
+.image-viewer-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0,0,0,0.85);
+    display: none;
+    align-items: center;
+    justify-content: center;
+    z-index: 2000;
+    flex-direction: column;
+    gap: 15px;
+}
+
+.image-viewer-overlay.active {
+    display: flex;
+}
+
+.image-viewer-overlay img {
+    max-width: 90%;
+    max-height: 75vh;
+    border-radius: 12px;
+    box-shadow: 0 10px 40px rgba(0,0,0,0.5);
+}
+
+.image-viewer-toolbar {
+    display: flex;
+    gap: 10px;
+}
+
+.image-viewer-toolbar button {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 8px;
+    font-size: 0.95rem;
+    font-weight: 600;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    transition: var(--transition);
+}
+
+.image-viewer-toolbar .btn-download {
+    background: var(--success);
+    color: white;
+}
+
+.image-viewer-toolbar .btn-download:hover {
+    background: var(--secondary-light);
+}
+
+.image-viewer-toolbar .btn-close-viewer {
+    background: rgba(255,255,255,0.2);
+    color: white;
+}
+
+.image-viewer-toolbar .btn-close-viewer:hover {
+    background: rgba(255,255,255,0.3);
+}
+
 /* Utilities */
 .hidden {
     display: none !important;
@@ -853,6 +1021,17 @@ footer a {
                     </select>
                 </div>
 
+                <div class="form-group">
+                    <label><i class="fas fa-file-alt"></i> Photo Carte Grise</label>
+                    <div class="upload-zone" id="carteGriseZone">
+                        <input type="file" id="carteGrise" accept="image/*" onchange="previewCarteGrise(this, 'carteGrisePreview', 'carteGriseZone')">
+                        <i class="fas fa-cloud-upload-alt"></i>
+                        <p>Cliquez ou glissez l'image ici</p>
+                        <p class="file-name" id="carteGriseFileName"></p>
+                        <img class="upload-preview" id="carteGrisePreview" alt="Aperçu carte grise">
+                    </div>
+                </div>
+
                 <div class="form-group full-width">
                     <label><i class="fas fa-comment-alt"></i> Observations</label>
                     <textarea id="obs" class="form-control" placeholder="Informations complémentaires sur le véhicule..."></textarea>
@@ -957,6 +1136,7 @@ footer a {
                             <th>KM</th>
                             <th>État</th>
                             <th>Carburant</th>
+                            <th>Carte Grise</th>
                             <th>Date</th>
                             <th>Actions</th>
                         </tr>
@@ -1043,6 +1223,17 @@ footer a {
                     <option value="Électrique">Électrique</option>
                 </select>
             </div>
+
+            <div class="form-group mb-2">
+                <label>Photo Carte Grise</label>
+                <div class="upload-zone" id="editCarteGriseZone">
+                    <input type="file" id="editCarteGrise" accept="image/*" onchange="previewCarteGrise(this, 'editCarteGrisePreview', 'editCarteGriseZone')">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                    <p>Cliquez ou glissez pour changer l'image</p>
+                    <p class="file-name" id="editCarteGriseFileName"></p>
+                    <img class="upload-preview" id="editCarteGrisePreview" alt="Aperçu carte grise">
+                </div>
+            </div>
             
             <div class="modal-footer">
                 <button type="button" class="btn btn-secondary" onclick="closeModal()">Annuler</button>
@@ -1073,6 +1264,19 @@ footer a {
                 <i class="fas fa-trash"></i> Supprimer
             </button>
         </div>
+    </div>
+</div>
+
+<!-- Image Viewer Modal -->
+<div class="image-viewer-overlay" id="imageViewer">
+    <img id="imageViewerImg" src="" alt="Carte Grise">
+    <div class="image-viewer-toolbar">
+        <button class="btn-download" id="imageViewerDownload">
+            <i class="fas fa-download"></i> Télécharger
+        </button>
+        <button class="btn-close-viewer" onclick="closeImageViewer()">
+            <i class="fas fa-times"></i> Fermer
+        </button>
     </div>
 </div>
 
@@ -1205,6 +1409,109 @@ function showToast(title, message, type = "success") {
 }
 
 // =====================================================
+// CARTE GRISE IMAGE FUNCTIONS
+// =====================================================
+function previewCarteGrise(input, previewId, zoneId) {
+    const preview = document.getElementById(previewId);
+    const zone = document.getElementById(zoneId);
+    const fileNameEl = zone.querySelector('.file-name');
+    
+    if (input.files && input.files[0]) {
+        const file = input.files[0];
+        
+        // Validate file size (max 2MB)
+        if (file.size > 2 * 1024 * 1024) {
+            showToast("Erreur", "L'image ne doit pas dépasser 2 Mo", "error");
+            input.value = "";
+            return;
+        }
+        
+        // Compress and preview
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            // Compress image
+            const img = new Image();
+            img.onload = function() {
+                const canvas = document.createElement('canvas');
+                const maxWidth = 1200;
+                const maxHeight = 900;
+                let { width, height } = img;
+                
+                if (width > maxWidth || height > maxHeight) {
+                    const ratio = Math.min(maxWidth / width, maxHeight / height);
+                    width *= ratio;
+                    height *= ratio;
+                }
+                
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                ctx.drawImage(img, 0, 0, width, height);
+                
+                const compressed = canvas.toDataURL('image/jpeg', 0.7);
+                preview.src = compressed;
+                preview.classList.add("visible");
+                zone.classList.add("has-file");
+                fileNameEl.textContent = file.name;
+                
+                // Store compressed version in a data attribute for retrieval
+                input.dataset.compressed = compressed;
+            };
+            img.src = e.target.result;
+        };
+        reader.readAsDataURL(file);
+    }
+}
+
+function resetUploadZone(previewId, zoneId, fileNameId) {
+    const preview = document.getElementById(previewId);
+    const zone = document.getElementById(zoneId);
+    const fileNameEl = document.getElementById(fileNameId);
+    if (preview) {
+        preview.src = "";
+        preview.classList.remove("visible");
+    }
+    if (zone) zone.classList.remove("has-file");
+    if (fileNameEl) fileNameEl.textContent = "";
+}
+
+function viewCarteGrise(centre, index) {
+    const data = getData();
+    const v = data[centre][index];
+    if (v.carteGriseImage) {
+        const viewer = document.getElementById("imageViewer");
+        const img = document.getElementById("imageViewerImg");
+        img.src = v.carteGriseImage;
+        viewer.classList.add("active");
+        
+        // Setup download button
+        document.getElementById("imageViewerDownload").onclick = function() {
+            downloadCarteGrise(centre, index);
+        };
+    }
+}
+
+function closeImageViewer() {
+    document.getElementById("imageViewer").classList.remove("active");
+}
+
+function downloadCarteGrise(centre, index) {
+    const data = getData();
+    const v = data[centre][index];
+    if (v.carteGriseImage) {
+        const link = document.createElement('a');
+        link.href = v.carteGriseImage;
+        link.download = `carte_grise_${v.immatriculation.replace(/\s+/g, '_')}_${centre.replace(/\s+/g, '_')}.jpg`;
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        showToast("Téléchargement", "Carte grise téléchargée", "success");
+    } else {
+        showToast("Erreur", "Aucune carte grise disponible", "warning");
+    }
+}
+
+// =====================================================
 // FORM HANDLING
 // =====================================================
 function handleFormSubmit(e) {
@@ -1223,6 +1530,7 @@ function handleFormSubmit(e) {
         km: document.getElementById("km").value,
         etat: document.getElementById("etat").value,
         carburant: document.getElementById("carburant").value,
+        carteGriseImage: null,
         observations: document.getElementById("obs").value,
         date: new Date().toLocaleDateString("fr-FR"),
         timestamp: Date.now()
@@ -1235,11 +1543,20 @@ function handleFormSubmit(e) {
         return;
     }
     
+    // Handle carte grise image
+    const cgInput = document.getElementById("carteGrise");
+    const cgCompressed = cgInput.dataset.compressed;
+    if (cgCompressed) {
+        vehicule.carteGriseImage = cgCompressed;
+    }
+    
     data[centre].push(vehicule);
     
     if (saveData(data)) {
         showToast("Succès", "Véhicule enregistré avec succès", "success");
         e.target.reset();
+        cgInput.dataset.compressed = "";
+        resetUploadZone('carteGrisePreview', 'carteGriseZone', 'carteGriseFileName');
     }
 }
 
@@ -1295,7 +1612,7 @@ function loadData() {
         const centreRow = tbody.insertRow();
         centreRow.classList.add("centre-row");
         const cell = centreRow.insertCell(0);
-        cell.colSpan = 10;
+        cell.colSpan = 11;
         cell.innerHTML = `<i class="fas fa-hospital"></i> ${centre} <span style="font-weight: normal;">(${data[centre].length} véhicule(s))</span>`;
         
         // Rows for vehicles
@@ -1322,10 +1639,25 @@ function loadData() {
             etatCell.innerHTML = `<span class="badge ${badgeClass}">${v.etat}</span>`;
             
             row.insertCell(7).innerText = v.carburant || "N/A";
-            row.insertCell(8).innerText = v.date;
+            
+            // Carte Grise image
+            const cgCell = row.insertCell(8);
+            if (v.carteGriseImage) {
+                cgCell.innerHTML = `
+                    <div class="cg-actions">
+                        <img src="${v.carteGriseImage}" class="cg-thumbnail" onclick="viewCarteGrise('${centre}', ${index})" title="Voir la carte grise">
+                        <button class="btn-download-cg" onclick="downloadCarteGrise('${centre}', ${index})" title="Télécharger">
+                            <i class="fas fa-download"></i>
+                        </button>
+                    </div>`;
+            } else {
+                cgCell.innerHTML = `<span class="badge badge-warning">Non fournie</span>`;
+            }
+            
+            row.insertCell(9).innerText = v.date;
             
             // Actions
-            const actionsCell = row.insertCell(9);
+            const actionsCell = row.insertCell(10);
             actionsCell.innerHTML = `
                 <div class="action-btns">
                     <button class="btn btn-sm btn-primary" onclick="editVehicle('${centre}', ${index})" title="Modifier">
@@ -1411,6 +1743,21 @@ function editVehicle(centre, index) {
     document.getElementById("editEtat").value = v.etat;
     document.getElementById("editCarburant").value = v.carburant || "Essence";
     
+    // Handle carte grise preview in edit modal
+    const editPreview = document.getElementById("editCarteGrisePreview");
+    const editZone = document.getElementById("editCarteGriseZone");
+    const editFileName = document.getElementById("editCarteGriseFileName");
+    if (v.carteGriseImage) {
+        editPreview.src = v.carteGriseImage;
+        editPreview.classList.add("visible");
+        editZone.classList.add("has-file");
+        editFileName.textContent = "Image existante";
+    } else {
+        editPreview.classList.remove("visible");
+        editZone.classList.remove("has-file");
+        editFileName.textContent = "";
+    }
+    
     document.getElementById("editModal").classList.add("active");
 }
 
@@ -1436,6 +1783,14 @@ function handleEditSubmit(e) {
         carburant: document.getElementById("editCarburant").value,
         modifiedAt: new Date().toLocaleDateString("fr-FR")
     };
+    
+    // Handle carte grise image update
+    const editCgInput = document.getElementById("editCarteGrise");
+    const editCgCompressed = editCgInput.dataset.compressed;
+    if (editCgCompressed) {
+        data[centre][index].carteGriseImage = editCgCompressed;
+        editCgInput.dataset.compressed = "";
+    }
     
     if (saveData(data)) {
         closeModal();
@@ -1494,6 +1849,7 @@ function exportExcel() {
                 "Kilométrage": v.km,
                 "État": v.etat,
                 "Carburant": v.carburant || "N/A",
+                "Carte Grise": v.carteGriseImage ? "Oui (image jointe)" : "Non fournie",
                 "Observations": v.observations || "",
                 "Date Déclaration": v.date
             });
@@ -1512,7 +1868,7 @@ function exportExcel() {
     ws['!cols'] = [
         { wch: 30 }, { wch: 12 }, { wch: 15 }, { wch: 20 },
         { wch: 8 }, { wch: 12 }, { wch: 10 }, { wch: 12 },
-        { wch: 30 }, { wch: 15 }
+        { wch: 18 }, { wch: 30 }, { wch: 15 }
     ];
     
     XLSX.utils.book_append_sheet(wb, ws, "Véhicules");
@@ -1555,6 +1911,9 @@ function exportPDF() {
     
     let y = 58;
     
+    // Collect all vehicles with carte grise images for appendix
+    const cartesGrises = [];
+    
     Object.keys(data).sort().forEach(centre => {
         // Check if we need a new page
         if (y > 180) {
@@ -1569,9 +1928,21 @@ function exportPDF() {
         doc.text(`${centre} (${data[centre].length} véhicule(s))`, 16, y);
         y += 4;
         
+        // Collect carte grise images
+        data[centre].forEach(v => {
+            if (v.carteGriseImage) {
+                cartesGrises.push({
+                    centre: centre,
+                    immatriculation: v.immatriculation,
+                    type: v.type,
+                    image: v.carteGriseImage
+                });
+            }
+        });
+        
         doc.autoTable({
             startY: y,
-            head: [["Type", "Immatriculation", "Châssis", "Année", "KM", "État", "Carburant"]],
+            head: [["Type", "Immatriculation", "Châssis", "Année", "KM", "État", "Carburant", "Carte Grise"]],
             body: data[centre].map(v => [
                 v.type,
                 v.immatriculation,
@@ -1579,7 +1950,8 @@ function exportPDF() {
                 v.annee,
                 Number(v.km).toLocaleString(),
                 v.etat,
-                v.carburant || "N/A"
+                v.carburant || "N/A",
+                v.carteGriseImage ? "✓ Voir annexe" : "Non fournie"
             ]),
             theme: 'striped',
             headStyles: {
@@ -1595,6 +1967,63 @@ function exportPDF() {
         
         y = doc.lastAutoTable.finalY + 12;
     });
+    
+    // =====================================================
+    // ANNEXE : Photos des Cartes Grises
+    // =====================================================
+    if (cartesGrises.length > 0) {
+        doc.addPage();
+        
+        // Annexe header
+        doc.setFillColor(13, 59, 102);
+        doc.rect(0, 0, 297, 25, 'F');
+        doc.setTextColor(255, 255, 255);
+        doc.setFontSize(16);
+        doc.setFont(undefined, 'bold');
+        doc.text("ANNEXE - PHOTOS DES CARTES GRISES", 148, 16, { align: 'center' });
+        
+        let imgY = 35;
+        
+        cartesGrises.forEach((cg, idx) => {
+            // Check if we need a new page (leave room for image + label)
+            if (imgY > 140) {
+                doc.addPage();
+                imgY = 20;
+            }
+            
+            // Vehicle info label
+            doc.setTextColor(13, 59, 102);
+            doc.setFontSize(10);
+            doc.setFont(undefined, 'bold');
+            doc.text(`${idx + 1}. ${cg.type} - ${cg.immatriculation}`, 14, imgY);
+            doc.setFont(undefined, 'normal');
+            doc.setTextColor(100, 100, 100);
+            doc.setFontSize(8);
+            doc.text(`Centre: ${cg.centre}`, 14, imgY + 5);
+            
+            imgY += 9;
+            
+            // Add the carte grise image
+            try {
+                const imgFormat = cg.image.includes('image/png') ? 'PNG' : 'JPEG';
+                const imgWidth = 120;
+                const imgHeight = 75;
+                doc.addImage(cg.image, imgFormat, 14, imgY, imgWidth, imgHeight);
+                
+                // Draw border around image
+                doc.setDrawColor(200, 200, 200);
+                doc.setLineWidth(0.5);
+                doc.rect(14, imgY, imgWidth, imgHeight);
+                
+                imgY += imgHeight + 15;
+            } catch (err) {
+                doc.setTextColor(230, 57, 70);
+                doc.setFontSize(8);
+                doc.text("⚠ Erreur de chargement de l'image", 14, imgY + 10);
+                imgY += 20;
+            }
+        });
+    }
     
     // Footer on each page
     const pageCount = doc.internal.getNumberOfPages();
@@ -1616,6 +2045,7 @@ document.addEventListener('keydown', function(e) {
         closeModal();
         closeDeleteModal();
         closeLoginModal();
+        closeImageViewer();
     }
 });
 
@@ -1628,6 +2058,13 @@ document.querySelectorAll('.modal-overlay').forEach(overlay => {
             closeLoginModal();
         }
     });
+});
+
+// Close image viewer on overlay click
+document.getElementById('imageViewer').addEventListener('click', function(e) {
+    if (e.target === this) {
+        closeImageViewer();
+    }
 });
 </script>
 
